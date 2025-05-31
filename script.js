@@ -1,13 +1,11 @@
 let box = document.getElementById("box");
 let position = 0;
-let speed = 2; // Pixels per frame
+let speed = 2;
 
 function animate() {
-    if (position < window.innerWidth - 50) {
-        position += speed;
-        box.style.left = position + "px";
-        requestAnimationFrame(animate); // Calls itself for smooth animation
-    }
+    position += speed;
+    box.style.transform = `translateX(${position}px)`;
+    requestAnimationFrame(animate);
 }
 
 animate();
