@@ -1,5 +1,5 @@
 let box = document.getElementById("box");
-let position = 100;
+let position = 0;
 let speed = 2; // Pixels per frame
 
 function animate() {
