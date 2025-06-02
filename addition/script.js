@@ -1,9 +1,17 @@
 function generateProblem() {
     const numDigits = parseInt(document.getElementById("numDigits").value);
-    const carryTable = document.getElementById("carryTable");
-    const numberTable = document.getElementById("numberTable");
-    const resultTable = document.getElementById("resultTable");
 
+    // Ensure tables exist
+    let carryTable = document.getElementById("carryTable");
+    let numberTable = document.getElementById("numberTable");
+    let resultTable = document.getElementById("resultTable");
+
+    // Debug logs
+    console.log("carryTable:", carryTable);
+    console.log("numberTable:", numberTable);
+    console.log("resultTable:", resultTable);
+
+    // Reset tables
     carryTable.innerHTML = "";
     numberTable.innerHTML = "";
     resultTable.innerHTML = "";
@@ -16,7 +24,7 @@ function generateProblem() {
 
     // Generate carry row
     let carryRow = carryTable.insertRow();
-    for (let i = 0; i < numDigits; i++) {
+    for (let i = 0; i <= numDigits; i++) {  // Extra space for carry overflow
         let cell = carryRow.insertCell();
         let input = document.createElement("input");
         input.className = "carry";
