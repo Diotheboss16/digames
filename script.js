@@ -5,12 +5,10 @@ let direction = 1; // 1 for moving right, -1 for moving left
 
 function animate() {
     let boxWidth = box.offsetWidth;
-    if (position >= window.innerWidth - boxWidth) {
+    console.log("Inner width: " + window.innerWidth);
+    console.log("Box width: " + boxWidth);
+    if (position >= window.innerWidth - boxWidth || position <= 0) {
         position = window.innerWidth - boxWidth; // Ensure it doesn't go beyond the edge
-        direction *= -1;
-    }
-    if (position <= 0) {
-        position = 0; // Prevent negative position
         direction *= -1;
     }
     position += speed * direction;
