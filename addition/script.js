@@ -24,7 +24,7 @@ function generateProblem() {
 
     // Generate carry row
     let carryRow = carryTable.insertRow();
-    for (let i = 0; i <= numDigits; i++) {  // Extra space for carry overflow
+    for (let i = 0; i < numDigits; i++) {  // Extra space for carry overflow
         let cell = carryRow.insertCell();
         let input = document.createElement("input");
         input.className = "carry";
