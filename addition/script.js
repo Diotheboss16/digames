@@ -89,33 +89,39 @@ function checkAnswer() {
     let correctAnswerStr = window.correctAnswer.sum.join("");
     let correctSum = parseInt(correctAnswerStr, 10);
 
-    // Check carry values
-    let carryCorrect = true;
+    // Compute user-entered carry value as a number
+    let userCarryStr = "";
     for (let i = 0; i < numDigits; i++) {
-        let userCarry = document.getElementById(`carry${i}`).value || "0";  // Default to 0 if empty
-        let correctCarry = window.correctAnswer.carry[i] || "0";  // Default to 0
-        if (parseInt(userCarry, 10) !== parseInt(correctCarry, 10)) {
-            carryCorrect = false;
-        }
+        let userCarry = document.getElementById(`carry${i}`).value || "0";  // Default to 0
+        userCarryStr += userCarry;
     }
+    let userCarryNum = parseInt(userCarryStr, 10);
 
-    console.log("User sum: " + userSum);
-    console.log("Correct sum: " + correctSum);
-    console.log("User sum: " + userCarry);
-    console.log("Correct sum: " + correctCarry);
+    // Compute correct carry value as a number
+    let correctCarryStr = window.correctAnswer.carry.join("");
+    let correctCarryNum = parseInt(correctCarryStr, 10);
+
+    // Compare results
+    let sumCorrect = (userSum === correctSum);
+    let carryCorrect = (userCarryNum === correctCarryNum);
 
     // Determine result message
     let message;
-    if (userSum === correctSum && carryCorrect) {
+    if (sumCorrect && carryCorrect) {
         message = "✅ Both the result and carriers are correct!";
-    } else if (userSum === correctSum && !carryCorrect) {
+    } else if (sumCorrect && !carryCorrect) {
         message = "✅ The result is correct, but the carriers need adjustment.";
-    } else if (userSum !== correctSum && carryCorrect) {
+    } else if (!sumCorrect && carryCorrect) {
         message = "❌ The result is incorrect, but the carriers are correct.";
     } else {
         message = "❌ Both the result and carriers are incorrect. Try again!";
     }
 
     document.getElementById("feedback").textContent = message;
+
+    // Debugging Output
+    console.log(`User Sum: ${userSum}, Correct Sum: ${correctSum}`);
+    console.log(`User Carry: ${userCarryNum}, Correct Carry: ${correctCarryNum}`);
 }
+
 
