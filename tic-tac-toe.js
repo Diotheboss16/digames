@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", function() {
             if (checkWin()) {
                 alert(currentPlayer + " wins!");
                 resetGame();
+            } else if (cells.every(cell => cell.textContent !== "")) {
+                alert("It's a draw!");
+                resetGame();
             } else {
                 currentPlayer = currentPlayer === "X" ? "O" : "X";
             }
