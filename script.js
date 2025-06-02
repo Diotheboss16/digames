@@ -8,7 +8,7 @@ function animate() {
     if (position >= window.innerWidth - boxWidth || position <= 0) {
         direction *= -1; // Reverse direction
     }
-    //position += speed * direction;
+    position += speed * direction;
     box.style.transform = `translateX(${position}px)`;
     requestAnimationFrame(animate);
 }
