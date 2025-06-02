@@ -77,6 +77,10 @@ function calculateSolution(num1, num2) {
 function checkAnswer() {
     let numDigits = parseInt(document.getElementById("numDigits").value);
 
+    if (!Array.isArray(window.correctAnswer.carry)) {
+	window.correctAnswer.carry = [];
+    }
+
     // Convert user input into a number
     let userSumStr = "";
     for (let i = 0; i <= numDigits; i++) {
