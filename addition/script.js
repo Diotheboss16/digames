@@ -108,9 +108,6 @@ function checkAnswer() {
 
     let correctCarryNum = parseInt(correctCarryStr, 10);
 
-    // Compute correct carry value as a number
-    let correctCarryStr = window.correctAnswer.carry.join("");
-
     // Compare results
     let sumCorrect = (userSum === correctSum);
     let carryCorrect = (userCarryNum === correctCarryNum);
