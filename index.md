@@ -2,3 +2,4 @@
 title: Welcome to Dio's Games!
 ---
 <a href="tic-tac-toe/tic-tac-toe.html">Play Tic-Tac-Toe
+<a href="trivia-game/index.html">Play Trivia
