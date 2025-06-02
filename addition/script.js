@@ -102,8 +102,14 @@ function checkAnswer() {
     let userCarryNum = parseInt(userCarryStr, 10);
 
     // Compute correct carry value as a number
-    let correctCarryStr = window.correctAnswer.carry.join("");
+    let correctCarryStr = Array.isArray(window.correctAnswer.carry) 
+	? window.correctAnswer.carry.map(num => num || 0).join("")
+	: "0"; // Default to "0" if undefined
+
     let correctCarryNum = parseInt(correctCarryStr, 10);
+
+    // Compute correct carry value as a number
+    let correctCarryStr = window.correctAnswer.carry.join("");
 
     // Compare results
     let sumCorrect = (userSum === correctSum);
