@@ -89,10 +89,28 @@ function checkAnswer() {
     let correctAnswerStr = window.correctAnswer.sum.join("");
     let correctSum = parseInt(correctAnswerStr, 10);
 
-    console.log("User sum: " + userSum);
-    console.log("Answer sum: " + correctSum);
-    // Compare as actual numbers
-    let correct = userSum === correctSum;
+    // Check carry values
+    let carryCorrect = true;
+    for (let i = 0; i < numDigits; i++) {
+        let userCarry = document.getElementById(`carry${i}`).value || "0";  // Default to 0 if empty
+        let correctCarry = window.correctAnswer.carry[i] || "0";  // Default to 0
+        if (parseInt(userCarry, 10) !== parseInt(correctCarry, 10)) {
+            carryCorrect = false;
+        }
+    }
 
-    document.getElementById("feedback").textContent = correct ? "Correct!" : "Try Again!";
+    // Determine result message
+    let message;
+    if (userSum === correctSum && carryCorrect) {
+        message = "✅ Both the result and carriers are correct!";
+    } else if (userSum === correctSum && !carryCorrect) {
+        message = "✅ The result is correct, but the carriers need adjustment.";
+    } else if (userSum !== correctSum && carryCorrect) {
+        message = "❌ The result is incorrect, but the carriers are correct.";
+    } else {
+        message = "❌ Both the result and carriers are incorrect. Try again!";
+    }
+
+    document.getElementById("feedback").textContent = message;
 }
+
