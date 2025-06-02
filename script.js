@@ -13,6 +13,7 @@ function animate() {
     let boxWidth = box.offsetWidth;
     let windowWidth = window.innerWidth;
 
+    // Reverse direction at edges
     if (position + boxWidth >= windowWidth || position <= 0) {
         direction *= -1;
     }
@@ -24,3 +25,4 @@ function animate() {
 }
 
 requestAnimationFrame(animate);
+
