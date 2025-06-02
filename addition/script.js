@@ -1,48 +1,49 @@
 function generateProblem() {
-    const numDigits = document.getElementById("numDigits").value;
-    const additionGrid = document.getElementById("additionGrid");
-    additionGrid.innerHTML = ""; // Reset grid
+    const numDigits = parseInt(document.getElementById("numDigits").value);
+    const carryTable = document.getElementById("carryTable");
+    const numberTable = document.getElementById("numberTable");
+    const resultTable = document.getElementById("resultTable");
+
+    carryTable.innerHTML = "";
+    numberTable.innerHTML = "";
+    resultTable.innerHTML = "";
 
     let num1 = generateNumber(numDigits);
     let num2 = generateNumber(numDigits);
 
-    // Display the problem
-    let carries = Array(numDigits).fill(""); // Placeholder for carry values
-    let answers = Array(numDigits).fill(""); // Placeholder for result inputs
+    let carries = Array(numDigits).fill("");
+    let answers = Array(numDigits + 1).fill("");  // Result can have extra digit
 
+    // Generate carry row
+    let carryRow = carryTable.insertRow();
     for (let i = 0; i < numDigits; i++) {
-        // Carry slots
-        let carrySlot = document.createElement("input");
-        carrySlot.className = "cell carry";
-        carrySlot.id = `carry${i}`;
-        additionGrid.appendChild(carrySlot);
+        let cell = carryRow.insertCell();
+        let input = document.createElement("input");
+        input.className = "carry";
+        input.id = `carry${i}`;
+        cell.appendChild(input);
     }
 
-    for (let i = 0; i < numDigits; i++) {
-        // Digits of the first number
-        let digit1 = document.createElement("div");
-        digit1.className = "cell";
-        digit1.textContent = num1[i];
-        additionGrid.appendChild(digit1);
+    // Generate number rows
+    for (let rowData of [num1, num2]) {
+        let row = numberTable.insertRow();
+        for (let digit of rowData) {
+            let cell = row.insertCell();
+            cell.textContent = digit;
+        }
     }
 
-    for (let i = 0; i < numDigits; i++) {
-        // Digits of the second number
-        let digit2 = document.createElement("div");
-        digit2.className = "cell";
-        digit2.textContent = num2[i];
-        additionGrid.appendChild(digit2);
+    // Generate result row
+    let resultRow = resultTable.insertRow();
+    for (let i = 0; i <= numDigits; i++) {  // Can have extra digit in result
+        let cell = resultRow.insertCell();
+        let input = document.createElement("input");
+        input.className = "result";
+        input.id = `answer${i}`;
+        cell.appendChild(input);
     }
 
-    for (let i = 0; i < numDigits; i++) {
-        // Answer input slots
-        let answerSlot = document.createElement("input");
-        answerSlot.className = "cell";
-        answerSlot.id = `answer${i}`;
-        additionGrid.appendChild(answerSlot);
-    }
-
-    // Store the correct solution
+    // Store correct solution
     window.correctAnswer = calculateSolution(num1, num2);
 }
 
@@ -56,18 +57,20 @@ function calculateSolution(num1, num2) {
 
     for (let i = num1.length - 1; i >= 0; i--) {
         let digitSum = num1[i] + num2[i] + carry;
-        carry = Math.floor(digitSum / 10); // Compute carry
-        sum.unshift(digitSum % 10); // Store last digit of sum
+        carry = Math.floor(digitSum / 10);  // Compute carry
+        sum.unshift(digitSum % 10);  // Store last digit of sum
     }
+
+    if (carry > 0) sum.unshift(carry);  // Account for extra carry in result
 
     return { sum, carry };
 }
 
 function checkAnswer() {
     let userSum = [];
-    let numDigits = document.getElementById("numDigits").value;
+    let numDigits = parseInt(document.getElementById("numDigits").value);
 
-    for (let i = 0; i < numDigits; i++) {
+    for (let i = 0; i <= numDigits; i++) {  // Include extra result digit
         userSum.push(parseInt(document.getElementById(`answer${i}`).value || 0, 10));
     }
 
