@@ -11,6 +11,7 @@ function animate() {
     position += speed * direction;
     box.style.transform = `translateX(${position}px)`;
     console.log("Been Here!");
+    console.log(position);
     requestAnimationFrame(animate);
 }
 
