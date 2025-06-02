@@ -75,17 +75,24 @@ function calculateSolution(num1, num2) {
 }
 
 function checkAnswer() {
-    let userSum = [];
     let numDigits = parseInt(document.getElementById("numDigits").value);
 
-    for (let i = 0; i <= numDigits; i++) {  // Include extra result digit
+    // Convert user input into a number
+    let userSumStr = "";
+    for (let i = 0; i <= numDigits; i++) {
         let userInput = document.getElementById(`answer${i}`).value;
-        userSum.push(userInput !== "" ? parseInt(userInput, 10) : null);  // Use `null` for blanks
+        userSumStr += userInput !== "" ? userInput : "";  // Ignore blanks
     }
-    console.log("User sum" + userSum);
-    console.log("Answer" + window.correctAnswer.sum);
+    let userSum = parseInt(userSumStr, 10);
 
-    let correct = JSON.stringify(userSum) === JSON.stringify(window.correctAnswer.sum);
+    // Convert correct answer array into a number
+    let correctAnswerStr = window.correctAnswer.sum.join("");
+    let correctSum = parseInt(correctAnswerStr, 10);
+
+    console.log("User sum: " + userSum);
+    console.log("Answer sum: " + correctSum);
+    // Compare as actual numbers
+    let correct = userSum === correctSum;
 
     document.getElementById("feedback").textContent = correct ? "Correct!" : "Try Again!";
 }
