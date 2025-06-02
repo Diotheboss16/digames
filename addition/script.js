@@ -99,6 +99,11 @@ function checkAnswer() {
         }
     }
 
+    console.log("User sum: " + userSum);
+    console.log("Correct sum: " + correctSum);
+    console.log("User sum: " + userCarry);
+    console.log("Correct sum: " + correctCarry);
+
     // Determine result message
     let message;
     if (userSum === correctSum && carryCorrect) {
