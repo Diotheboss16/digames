@@ -79,7 +79,8 @@ function checkAnswer() {
     let numDigits = parseInt(document.getElementById("numDigits").value);
 
     for (let i = 0; i <= numDigits; i++) {  // Include extra result digit
-        userSum.push(parseInt(document.getElementById(`answer${i}`).value || 0, 10));
+        let userInput = document.getElementById(`answer${i}`).value;
+        userSum.push(userInput !== "" ? parseInt(userInput, 10) : null);  // Use `null` for blanks
     }
 
     let correct = JSON.stringify(userSum) === JSON.stringify(window.correctAnswer.sum);
