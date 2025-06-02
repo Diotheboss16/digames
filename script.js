@@ -1,3 +1,9 @@
+window.onload = function() {
+    let box = document.getElementById("box");
+    box.style.transform = "translateX(0px)"; // Reset position
+    localStorage.clear(); // Clear any stored values (if used)
+};
+
 let box = document.getElementById("box");
 let position = 0;
 let speed = 2; // Pixels per frame
