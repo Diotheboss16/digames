@@ -13,4 +13,3 @@ title: Welcome to Dio's Games!
 </style>
 <div id="box"></div>
 <p id="message"></p>
-<script src="script.js?v=2"></script>
