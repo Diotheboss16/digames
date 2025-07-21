@@ -8,12 +8,16 @@
 </head>
 <body>
   <h1>Step-by-Step Equation Solver</h1>
-  <input type="text" id="equation" placeholder="Enter equation (e.g., 2x + 1 = 5)" />
-  <input type="text" id="instruction" placeholder="Instruction (e.g., subtract 1)" />
-  <button onclick="applyInstruction()">Apply Instruction</button>
 
-  <div id="output"></div>
+  <div id="app">
+    <div class="step">
+      <label>Initial Equation:</label>
+      <input type="text" id="initialEq" placeholder="e.g., 2x + 1 = 5" />
+      <button onclick="startSolver()">Start</button>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
 </html>
+
