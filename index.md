@@ -5,3 +5,4 @@ title: Welcome to Dio's Games!
 <a href="trivia-game/index.html">Play Trivia<br>
 <a href="addition/index.html">Education: Long Addition<br>
 <a href="rng-game/index.html">Oliveira RNG<br>
+<a href="equation-solver/index.html">Equation Solver<br>
