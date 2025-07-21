@@ -8,7 +8,7 @@ const auras = [
     { name: "blue", prob: 16 },
     { name: "pink", prob: 27 },
     { name: "rare", prob: 35 },
-    { name: "amazing", prob: 50 , cutscene: "cutscenes/super-rare-mutated.gif"},
+    { name: "amazing", prob: 50 , cutscene: "cutscenes/super-rare-mutated.gif" },
     { name: "bronze", prob: 99 },
     { name: "creative", prob: 100 },
     { name: "THE GREATEST (mutated)great", prob: 170 },
