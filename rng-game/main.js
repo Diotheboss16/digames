@@ -8,7 +8,7 @@ const auras = [
     { name: "blue", prob: 16 },
     { name: "pink", prob: 27 },
     { name: "rare", prob: 35 },
-    { name: "amazing", prob: 50 },
+    { name: "amazing", prob: 50 , cutscene: "cutscenes/super-rare-mutated.gif"},
     { name: "bronze", prob: 99 },
     { name: "creative", prob: 100 },
     { name: "THE GREATEST (mutated)great", prob: 170 },
@@ -87,6 +87,7 @@ function playCutscene(gifPath) {
     container.style.left = "0";
     container.style.width = "100%";
     container.style.height = "100%";
+    gif.style.objectFit = "cover"; 
     container.style.backgroundColor = "rgba(0,0,0,0.85)";
     container.style.display = "flex";
     container.style.justifyContent = "center";
