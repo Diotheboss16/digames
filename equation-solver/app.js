@@ -42,11 +42,11 @@ function addStep(parent, left, right) {
   header.textContent = `Step ${stepCount}: ${left} = ${right}`;
   stepDiv.appendChild(header);
 
+  /*
   if (checkSolved(left, right) || checkSolved(right,left)) {
      return;
-  }
+  }*/
 
-/*
   if (left.match(/^x\s*=/) || left === 'x' || left === '(x)' || left === 'x()') {
     const isSolved = right.match(/^\d+(\.\d+)?$/);
     if (isSolved) {
@@ -58,7 +58,6 @@ function addStep(parent, left, right) {
       return;
     }
   }
-*/
       
   const label = document.createElement('label');
   label.textContent = 'Next Instruction:';
