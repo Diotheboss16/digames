@@ -82,7 +82,7 @@ function addStep(parent, left, right) {
       currentRight = newRight;
       addStep(parent, newLeft, newRight);
     } catch (err) {
-      alert('Error applying instruction.');
+      alert(`Error applying instruction: ${err} ${left} = ${right}`);
     }
   };
 
