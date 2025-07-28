@@ -42,7 +42,7 @@ function addStep(parent, left, right) {
   header.textContent = `Step ${stepCount}: ${left} = ${right}`;
   stepDiv.appendChild(header);
 
-  if (checkSolved(left, right) || checkSolved(right,left) {
+  if (checkSolved(left, right) || checkSolved(right,left)) {
      return;
   }
 
