@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const startButton = document.getElementById("start-btn");
     const categorySelect = document.getElementById("category");
     const difficultySelect = document.getElementById("difficulty");
+    const amountInput = document.getElementById("amount");
     const endScreen = document.getElementById("end-screen");
     const summaryEl = document.getElementById("summary");
     const restartButton = document.getElementById("restart-btn");
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
         startButton.disabled = inGame;
         categorySelect.disabled = inGame;
         difficultySelect.disabled = inGame;
+        amountInput.disabled = inGame;
     }
 
     function resetToMenu(message = "Press Start Trivia to begin!") {
@@ -34,10 +36,42 @@ document.addEventListener("DOMContentLoaded", () => {
         setInGame(false);
     }
 
+    async function loadCategories() {
+        try {
+            const response = await fetch("https://opentdb.com/api_category.php");
+            const data = await response.json();
+            const categories = data.trivia_categories;
+
+            if (!Array.isArray(categories) || categories.length === 0) return;
+
+            const previous = categorySelect.value;
+            categorySelect.innerHTML = "";
+
+            categories.forEach(({ id, name }) => {
+                const opt = document.createElement("option");
+                opt.value = String(id);
+                opt.textContent = name;
+                categorySelect.appendChild(opt);
+            });
+
+            if (previous && categorySelect.querySelector(`option[value="${CSS.escape(previous)}"]`)) {
+                categorySelect.value = previous;
+            }
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+        }
+    }
+
     async function fetchQuestions() {
         const category = categorySelect.value;
         const difficulty = difficultySelect.value;
-        const API_URL = `https://opentdb.com/api.php?amount=10&category=${category}&difficulty=${difficulty}&type=multiple`;
+
+        let amount = parseInt(amountInput.value, 10);
+        if (!Number.isFinite(amount) || amount < 1) amount = 10;
+        if (amount > 50) amount = 50;
+        amountInput.value = String(amount);
+
+        const API_URL = `https://opentdb.com/api.php?amount=${amount}&category=${category}&difficulty=${difficulty}&type=multiple`;
 
         try {
             setInGame(true);
@@ -84,14 +118,42 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function playSound(type) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+
+        const ctx = new AudioCtx();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+
+        o.type = "sine";
+        o.frequency.value = type === "correct" ? 880 : 220;
+
+        const now = ctx.currentTime;
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+        o.connect(g);
+        g.connect(ctx.destination);
+
+        o.start(now);
+        o.stop(now + 0.2);
+        o.onended = () => ctx.close();
+    }
+
     function checkAnswer(selected, correct) {
+        const isCorrect = selected === correct;
+
         answersContainer.querySelectorAll("button").forEach(btn => {
             btn.disabled = true;
             if (btn.textContent === correct) btn.classList.add("correct");
-            if (btn.textContent === selected && selected !== correct) btn.classList.add("wrong");
+            if (btn.textContent === selected && !isCorrect) btn.classList.add("wrong");
         });
 
-        if (selected === correct) {
+        playSound(isCorrect ? "correct" : "wrong");
+
+        if (isCorrect) {
             score++;
             scoreElement.textContent = `Score: ${score}`;
         }
@@ -122,5 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
     quitButton.onclick = () => resetToMenu("Thanks for playing!");
     startButton.onclick = fetchQuestions;
 
+    loadCategories();
     resetToMenu();
 });
