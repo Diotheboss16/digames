@@ -6,10 +6,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const startButton = document.getElementById("start-btn");
     const categorySelect = document.getElementById("category");
     const difficultySelect = document.getElementById("difficulty");
+    const endScreen = document.getElementById("end-screen");
+    const summaryEl = document.getElementById("summary");
+    const restartButton = document.getElementById("restart-btn");
+    const quitButton = document.getElementById("quit-btn");
 
     let questions = [];
     let currentQuestionIndex = 0;
     let score = 0;
+
+    function setInGame(inGame) {
+        startButton.disabled = inGame;
+        categorySelect.disabled = inGame;
+        difficultySelect.disabled = inGame;
+    }
+
+    function resetToMenu(message = "Press Start Trivia to begin!") {
+        questions = [];
+        currentQuestionIndex = 0;
+        score = 0;
+        scoreElement.textContent = `Score: ${score}`;
+        questionElement.textContent = message;
+        answersContainer.innerHTML = "";
+        nextButton.disabled = true;
+        nextButton.style.display = "none";
+        endScreen.classList.add("hidden");
+        setInGame(false);
+    }
 
     async function fetchQuestions() {
         const category = categorySelect.value;
@@ -17,15 +40,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const API_URL = `https://opentdb.com/api.php?amount=10&category=${category}&difficulty=${difficulty}&type=multiple`;
 
         try {
+            setInGame(true);
+            endScreen.classList.add("hidden");
+            nextButton.style.display = "block";
+            nextButton.disabled = true;
+            questionElement.textContent = "Loading...";
+            answersContainer.innerHTML = "";
+
             const response = await fetch(API_URL);
             const data = await response.json();
-            questions = data.results;
+
+            questions = data.results || [];
             currentQuestionIndex = 0;
             score = 0;
             scoreElement.textContent = `Score: ${score}`;
+
+            if (questions.length === 0) {
+                resetToMenu("No questions returned. Try a different category/difficulty.");
+                return;
+            }
+
             showQuestion();
         } catch (error) {
             console.error("Error fetching questions:", error);
+            resetToMenu("Failed to load questions. Please try again.");
         }
     }
 
@@ -41,13 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
         allAnswers.forEach(answer => {
             const button = document.createElement("button");
             button.textContent = answer;
-            button.onclick = () => checkAnswer(button, answer, questionData.correct_answer);
+            button.onclick = () => checkAnswer(answer, questionData.correct_answer);
             answersContainer.appendChild(button);
         });
     }
 
-    function checkAnswer(button, selected, correct) {
-        document.querySelectorAll("button").forEach(btn => {
+    function checkAnswer(selected, correct) {
+        answersContainer.querySelectorAll("button").forEach(btn => {
             btn.disabled = true;
             if (btn.textContent === correct) btn.classList.add("correct");
             if (btn.textContent === selected && selected !== correct) btn.classList.add("wrong");
@@ -61,16 +99,28 @@ document.addEventListener("DOMContentLoaded", () => {
         nextButton.disabled = false;
     }
 
+    function showGameOver() {
+        const total = questions.length;
+        questionElement.textContent = "Game Over!";
+        answersContainer.innerHTML = "";
+        nextButton.style.display = "none";
+        summaryEl.textContent = `You got ${score} out of ${total} correct.`;
+        endScreen.classList.remove("hidden");
+        setInGame(false);
+    }
+
     nextButton.onclick = () => {
         currentQuestionIndex++;
         if (currentQuestionIndex < questions.length) {
             showQuestion();
         } else {
-            questionElement.textContent = `Game Over! Final Score: ${score}`;
-            answersContainer.innerHTML = "";
-            nextButton.style.display = "none";
+            showGameOver();
         }
     };
 
+    restartButton.onclick = fetchQuestions;
+    quitButton.onclick = () => resetToMenu("Thanks for playing!");
     startButton.onclick = fetchQuestions;
+
+    resetToMenu();
 });
