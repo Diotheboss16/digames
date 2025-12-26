@@ -118,28 +118,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    let audioCtx;
+
     function playSound(type) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
 
-        const ctx = new AudioCtx();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
+        if (!audioCtx) audioCtx = new AudioCtx();
+
+        // iOS Safari commonly starts AudioContext in "suspended" until a user gesture.
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume().catch(() => {});
+        }
+
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
 
         o.type = "sine";
         o.frequency.value = type === "correct" ? 880 : 220;
 
-        const now = ctx.currentTime;
+        const now = audioCtx.currentTime;
         g.gain.setValueAtTime(0.0001, now);
-        g.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.2, now + 0.01);
         g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
 
         o.connect(g);
-        g.connect(ctx.destination);
+        g.connect(audioCtx.destination);
 
         o.start(now);
         o.stop(now + 0.2);
-        o.onended = () => ctx.close();
     }
 
     function checkAnswer(selected, correct) {
