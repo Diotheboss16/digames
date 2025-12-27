@@ -11,10 +11,94 @@ document.addEventListener("DOMContentLoaded", () => {
     const summaryEl = document.getElementById("summary");
     const restartButton = document.getElementById("restart-btn");
     const quitButton = document.getElementById("quit-btn");
+    const ttsEnabledSelect = document.getElementById("tts-enabled");
 
     let questions = [];
     let currentQuestionIndex = 0;
     let score = 0;
+
+    function htmlToText(html) {
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        return (div.textContent || "").trim();
+    }
+
+    function stopTTS() {
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    }
+
+    let ttsPrimed = false;
+    let pendingSpeechText = null;
+
+    // Edge sometimes won’t speak until voices are loaded and speech starts from a user gesture.
+    function primeTTS() {
+        if (ttsPrimed) return;
+        if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+
+        // Trigger voice loading without audibly speaking.
+        window.speechSynthesis.getVoices();
+        ttsPrimed = true;
+    }
+
+    function speakText(text) {
+        if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+            console.warn("Text-to-speech not supported in this browser.");
+            return;
+        }
+
+        const synth = window.speechSynthesis;
+        const lang = document.documentElement.lang || "en-US";
+
+        const doSpeak = () => {
+            stopTTS();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = lang;
+
+            const voices = synth.getVoices();
+            if (voices && voices.length) {
+                const langPrefix = lang.toLowerCase().slice(0, 2);
+                utter.voice = voices.find(v => (v.lang || "").toLowerCase().startsWith(langPrefix)) || voices[0];
+            }
+
+            synth.speak(utter);
+        };
+
+        const voices = synth.getVoices();
+        if (voices && voices.length) {
+            doSpeak();
+            return;
+        }
+
+        pendingSpeechText = text;
+        synth.onvoiceschanged = () => {
+            if (!pendingSpeechText) return;
+            const t = pendingSpeechText;
+            pendingSpeechText = null;
+            doSpeak(t);
+        };
+
+        // Fallback in case onvoiceschanged doesn’t fire.
+        setTimeout(() => {
+            if (!pendingSpeechText) return;
+            const t = pendingSpeechText;
+            pendingSpeechText = null;
+            doSpeak(t);
+        }, 250);
+    }
+
+    let lastSpoken = null;
+
+    function speakQuestionAndOptions(questionHtml, answersHtml) {
+        if (ttsEnabledSelect?.value !== "yes") return;
+
+        const parts = [htmlToText(questionHtml)];
+        answersHtml.forEach((ans, i) => {
+            const label = String.fromCharCode(65 + i);
+            parts.push(`Option ${label}: ${htmlToText(ans)}`);
+        });
+
+        speakText(parts.join(". "));
+    }
 
     function setInGame(inGame) {
         startButton.disabled = inGame;
@@ -24,6 +108,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function resetToMenu(message = "Press Start Trivia to begin!") {
+        stopTTS();
+        lastSpoken = null;
         questions = [];
         currentQuestionIndex = 0;
         score = 0;
@@ -109,13 +195,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const allAnswers = [...questionData.incorrect_answers, questionData.correct_answer];
         allAnswers.sort(() => Math.random() - 0.5); // Randomize answers
 
+        lastSpoken = { questionHtml: questionData.question, answersHtml: allAnswers };
+
         answersContainer.innerHTML = "";
         allAnswers.forEach(answer => {
             const button = document.createElement("button");
-            button.textContent = answer;
+            button.textContent = htmlToText(answer);
             button.onclick = () => checkAnswer(answer, questionData.correct_answer);
             answersContainer.appendChild(button);
         });
+
+        speakQuestionAndOptions(lastSpoken.questionHtml, lastSpoken.answersHtml);
     }
 
     let audioCtx;
@@ -152,10 +242,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function checkAnswer(selected, correct) {
         const isCorrect = selected === correct;
 
+        const correctText = htmlToText(correct);
+        const selectedText = htmlToText(selected);
+
         answersContainer.querySelectorAll("button").forEach(btn => {
             btn.disabled = true;
-            if (btn.textContent === correct) btn.classList.add("correct");
-            if (btn.textContent === selected && !isCorrect) btn.classList.add("wrong");
+            if (btn.textContent === correctText) btn.classList.add("correct");
+            if (btn.textContent === selectedText && !isCorrect) btn.classList.add("wrong");
         });
 
         playSound(isCorrect ? "correct" : "wrong");
@@ -169,6 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showGameOver() {
+        stopTTS();
+        lastSpoken = null;
         const total = questions.length;
         questionElement.textContent = "Game Over!";
         answersContainer.innerHTML = "";
@@ -179,6 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     nextButton.onclick = () => {
+        primeTTS();
         currentQuestionIndex++;
         if (currentQuestionIndex < questions.length) {
             showQuestion();
@@ -187,9 +283,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    restartButton.onclick = fetchQuestions;
+    const savedTts = localStorage.getItem("ttsEnabled");
+    if (ttsEnabledSelect) ttsEnabledSelect.value = savedTts === "yes" ? "yes" : "no";
+
+    ttsEnabledSelect?.addEventListener("change", () => {
+        localStorage.setItem("ttsEnabled", ttsEnabledSelect.value);
+        if (ttsEnabledSelect.value !== "yes") {
+            stopTTS();
+            return;
+        }
+        primeTTS();
+        speakText("Text to speech on.");
+        if (lastSpoken) speakQuestionAndOptions(lastSpoken.questionHtml, lastSpoken.answersHtml);
+    });
+
+    function startGame() {
+        primeTTS();
+        fetchQuestions();
+    }
+
+    restartButton.onclick = startGame;
     quitButton.onclick = () => resetToMenu("Thanks for playing!");
-    startButton.onclick = fetchQuestions;
+    startButton.onclick = startGame;
 
     loadCategories();
     resetToMenu();

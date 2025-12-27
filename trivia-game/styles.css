@@ -57,6 +57,7 @@ select, input {
     outline: none;
 }
 
+
 select:focus, input:focus {
     border-color: rgba(106, 166, 255, 0.7);
     box-shadow: 0 0 0 4px rgba(106, 166, 255, 0.18);
@@ -124,7 +125,7 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 @media (min-width: 900px) {
     .controls {
-        grid-template-columns: 1fr 1fr 180px auto;
+        grid-template-columns: 1fr 1fr 180px 180px auto;
     }
 }
 
