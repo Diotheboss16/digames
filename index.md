@@ -89,22 +89,22 @@ title: Welcome to Dio's Games!
     </a>
 
     <a class="app-tile" href="addition/index.html">
-      <img class="app-icon" alt="Long Addition Trainer" src="addition/Long%20Addition%20Trainer_icon.svg" />
+      <img class="app-icon" alt="Long Addition" src="addition/Long%20Addition_icon.svg" />
       <div class="app-name">Long Addition</div>
     </a>
 
     <a class="app-tile" href="subtraction/index.html">
-      <img class="app-icon" alt="Long Subtraction Trainer" src="subtraction/Long%20Subtraction%20Trainer_icon.svg" />
+      <img class="app-icon" alt="Long Subtraction" src="subtraction/Long%20Subtraction_icon.svg" />
       <div class="app-name">Long Subtraction</div>
     </a>
 
     <a class="app-tile" href="rng-game/index.html">
-      <img class="app-icon" alt="Oliveira's RNG Game" src="rng-game/Oliveira%27s%20RNG%20Game_icon.svg" />
+      <img class="app-icon" alt="Oliveira's RNG" src="rng-game/Oliveira%27s%20RNG_icon.svg" />
       <div class="app-name">Oliveira's RNG</div>
     </a>
 
     <a class="app-tile" href="equation-solver/index.html">
-      <img class="app-icon" alt="Step-by-Step Equation Solver" src="equation-solver/Step-by-Step%20Equation%20Solver_icon.svg" />
+      <img class="app-icon" alt="Equation Solver" src="equation-solver/Equation%20Solver_icon.svg" />
       <div class="app-name">Equation Solver</div>
     </a>
   </div>
