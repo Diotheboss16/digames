@@ -10,18 +10,36 @@
 
     <div class="container">
         <h1>Long Addition Trainer</h1>
-        <label for="numDigits">Number of digits (2-5): </label>
-        <input type="number" id="numDigits" min="2" max="5" value="2">
-        <button onclick="generateProblem()">Generate Problem</button>
 
-        <div id="additionArea">
-            <table id="carryTable"></table>  <!-- Carries -->
-            <table id="numberTable"></table>  <!-- Numbers -->
-            <table id="resultTable"></table>  <!-- Final result -->
+        <div class="toolbar">
+            <div class="control">
+                <label for="numDigits">Digits per number (2-5)</label>
+                <input type="number" id="numDigits" min="2" max="5" value="2">
+            </div>
+            <div class="control">
+                <label for="numAddends">How many numbers (2-5)</label>
+                <input type="number" id="numAddends" min="2" max="5" value="2">
+            </div>
+            <button class="primary" onclick="generateProblem()">Generate Problem</button>
         </div>
 
-        <button onclick="checkAnswer()">Check Answer</button>
-        <p id="feedback"></p>
+        <div id="additionArea" style="display:none">
+            <div class="labeledRow">
+                <div class="rowLabel">Carries</div>
+                <table id="carryTable"></table>  <!-- Carries -->
+            </div>
+            <div class="labeledRow">
+                <div class="rowLabel"></div>
+                <table id="numberTable"></table>  <!-- Numbers -->
+            </div>
+            <div class="labeledRow">
+                <div class="rowLabel">Result</div>
+                <table id="resultTable"></table>  <!-- Final result -->
+            </div>
+        </div>
+
+        <button id="checkAnswerBtn" style="display:none" onclick="checkAnswer()">Check Answer</button>
+        <p id="feedback" style="display:none"></p>
     </div>
 
     <script src="script.js"></script>
