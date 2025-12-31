@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Triangle</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Triangle</h1>
+
+    <div class="toolbar">
+      <div class="help">
+        Drag the <strong>vertices</strong> to reshape the triangle.
+      </div>
+
+      <div class="stats" aria-label="Triangle stats">
+        <div class="statLine"><span class="statLabel">Angle 1</span> <span id="a1" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Angle 2</span> <span id="a2" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Angle 3</span> <span id="a3" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Sum</span> <span id="sum" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Sides</span> <span id="sideClass" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Angles</span> <span id="angleClass" class="statVal">—</span></div>
+      </div>
+
+      <button id="resetBtn" class="primary" type="button">Reset</button>
+    </div>
+
+    <div class="canvasWrap">
+      <canvas id="game" width="820" height="460" aria-label="Triangle canvas"></canvas>
+    </div>
+
+    <p class="status" id="status">Tip: avoid stacking points on top of each other (degenerate triangle).</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
