@@ -76,22 +76,24 @@ title: Welcome to Dio's Games!
   }
 </style>
 
-{% assign icons = site.static_files | where_exp: "f", "f.extname == '.svg' and f.name contains '_icon.svg'" | sort: "path" %}
+{% assign icons = site.static_files | sort: "path" %}
 
 <div class="home-screen">
   <div class="home-grid">
     {% for icon in icons %}
-      {% assign relpath = icon.path | remove_first: "/" %}
-      {% assign parts = relpath | split: "/" %}
-      {% assign folder = parts[0] %}
-      {% assign app_name = icon.basename | replace: "_icon", "" %}
+      {% if icon.extname == ".svg" and icon.name contains "_icon.svg" %}
+        {% assign relpath = icon.path | remove_first: "/" %}
+        {% assign parts = relpath | split: "/" %}
+        {% assign folder = parts[0] %}
+        {% assign app_name = icon.basename | replace: "_icon", "" %}
 
-      {% assign entry = folder | append: "/index.html" %}
+        {% assign entry = folder | append: "/index.html" %}
 
-      <a class="app-tile" href="{{ entry | relative_url }}">
-        <img class="app-icon" alt="{{ app_name }}" src="{{ icon.path | relative_url | replace: ' ', '%20' }}" />
-        <div class="app-name">{{ app_name }}</div>
-      </a>
+        <a class="app-tile" href="{{ entry | relative_url }}">
+          <img class="app-icon" alt="{{ app_name }}" src="{{ icon.path | relative_url | replace: ' ', '%20' }}" />
+          <div class="app-name">{{ app_name }}</div>
+        </a>
+      {% endif %}
     {% endfor %}
   </div>
 </div>
