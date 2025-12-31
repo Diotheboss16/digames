@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Division Trainer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Long Division Trainer</h1>
+
+        <div class="toolbar">
+            <div class="control">
+                <label for="numDigits">Digits in dividend (2-6)</label>
+                <input type="number" id="numDigits" min="2" max="6" value="3">
+            </div>
+            <div class="control">
+                <label for="divisor">Divisor (2-9)</label>
+                <input type="number" id="divisor" min="2" max="9" value="4">
+            </div>
+            <button class="primary" onclick="generateProblem()">Generate Problem</button>
+        </div>
+
+        <div id="divisionArea" style="display:none">
+            <div class="labeledRow">
+                <div class="rowLabel">Quotient</div>
+                <table id="quotientTable"></table>
+            </div>
+            <div class="labeledRow">
+                <div class="rowLabel"></div>
+                <table id="divisionTable"></table>
+            </div>
+            <div class="labeledRow">
+                <div class="rowLabel">Remainder</div>
+                <div class="remainderWrap">
+                    <input id="remainder" class="remainder" inputmode="numeric" aria-label="Remainder">
+                </div>
+            </div>
+
+            <details id="stepsDetails" class="steps" style="display:none">
+                <summary>Show steps</summary>
+                <div id="steps"></div>
+            </details>
+        </div>
+
+        <button id="checkAnswerBtn" style="display:none" onclick="checkAnswer()">Check Answer</button>
+        <p id="feedback" style="display:none"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

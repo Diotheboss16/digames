@@ -1,0 +1,261 @@
+:root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --line: #111827;
+    --border: #cbd5e1;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --good: #16a34a;
+    --warn: #d97706;
+    --bad: #dc2626;
+}
+
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 24px;
+}
+
+.container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 20px 20px 16px;
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+h1 {
+    margin: 0 0 14px;
+    font-size: 28px;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: flex-end;
+    margin-bottom: 14px;
+}
+
+.control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.toolbar label {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.toolbar input[type="number"] {
+    width: 120px;
+    height: 36px;
+    padding: 6px 10px;
+    font-size: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+#divisionArea {
+    display: none;
+}
+
+#divisionArea.shown {
+    display: block;
+    width: fit-content;
+    margin: 12px auto;
+}
+
+table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    width: fit-content;
+    border: 0;
+}
+
+td {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 22px;
+    border: 0;
+    padding: 0;
+}
+
+#divisionArea input {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
+    outline: none;
+}
+
+#divisionArea input:focus {
+    border-color: var(--accent);
+}
+
+#divisionArea input.given {
+    background: #f1f5f9;
+}
+
+#divisionArea input.quotient {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+}
+
+#divisionArea input.remainder {
+    width: 80px;
+}
+
+.labeledRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.labeledRow table {
+    margin: 0;
+}
+
+.rowLabel {
+    width: 90px;
+    text-align: right;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.divisorCell {
+    padding-right: 6px;
+}
+
+.dividendCell {
+    border-top: 2px solid var(--line);
+}
+
+.dividendCell.first {
+    border-left: 2px solid var(--line);
+}
+
+.remainderWrap {
+    display: flex;
+    align-items: center;
+}
+
+.steps {
+    margin-top: 10px;
+    text-align: left;
+}
+
+.steps summary {
+    cursor: pointer;
+    color: var(--muted);
+}
+
+.steps ol {
+    margin: 10px 0 0;
+    padding-left: 20px;
+}
+
+button {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+}
+
+button.primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+}
+
+button.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+#checkAnswerBtn {
+    margin-top: 12px;
+}
+
+#feedback {
+    margin: 12px auto 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    width: fit-content;
+    border: 1px solid var(--border);
+}
+
+#feedback.feedback.success {
+    border-color: rgba(22,163,74,0.35);
+    background: rgba(22,163,74,0.10);
+    color: var(--good);
+}
+
+#feedback.feedback.warn {
+    border-color: rgba(217,119,6,0.35);
+    background: rgba(217,119,6,0.12);
+    color: var(--warn);
+}
+
+#feedback.feedback.error {
+    border-color: rgba(220,38,38,0.35);
+    background: rgba(220,38,38,0.10);
+    color: var(--bad);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0b1220;
+        --card: #0f172a;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --line: #e5e7eb;
+        --border: #334155;
+        --accent: #60a5fa;
+        --accent-hover: #3b82f6;
+    }
+
+    .toolbar input[type="number"] {
+        background: #0b1220;
+        color: var(--text);
+    }
+
+    #divisionArea input {
+        background: #0b1220;
+        color: var(--text);
+    }
+
+    #divisionArea input.given {
+        background: #111c33;
+    }
+
+    button {
+        background: #0b1220;
+        color: var(--text);
+    }
+}
