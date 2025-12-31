@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Oliveira's RNG Game icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fda4af"/>
+      <stop offset="1" stop-color="#be123c"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#bg)"/>
+
+  <!-- dice -->
+  <rect x="130" y="126" width="252" height="252" rx="52" fill="rgba(255,255,255,0.94)"/>
+  <rect x="130" y="126" width="252" height="252" rx="52" fill="none" stroke="rgba(17,24,39,0.12)" stroke-width="6"/>
+
+  <g fill="#be123c">
+    <circle cx="196" cy="192" r="18"/>
+    <circle cx="316" cy="312" r="18"/>
+    <circle cx="316" cy="192" r="18"/>
+    <circle cx="196" cy="312" r="18"/>
+    <circle cx="256" cy="252" r="18"/>
+  </g>
+
+  <!-- sparkles -->
+  <g stroke="rgba(255,255,255,0.85)" stroke-width="10" stroke-linecap="round">
+    <line x1="410" y1="150" x2="448" y2="150"/>
+    <line x1="429" y1="131" x2="429" y2="169"/>
+
+    <line x1="90" y1="370" x2="120" y2="370"/>
+    <line x1="105" y1="355" x2="105" y2="385"/>
+  </g>
+</svg>

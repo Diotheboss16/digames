@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Trivia Game icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="448" height="448" rx="96" fill="url(#bg)"/>
+
+  <!-- bubble -->
+  <path d="M168 112h176c32 0 58 26 58 58v116c0 32-26 58-58 58H264l-66 58c-10 9-26 1-26-12v-46h-4c-32 0-58-26-58-58V170c0-32 26-58 58-58z" fill="rgba(255,255,255,0.92)"/>
+  <path d="M168 112h176c32 0 58 26 58 58v116c0 32-26 58-58 58H264l-66 58c-10 9-26 1-26-12v-46h-4c-32 0-58-26-58-58V170c0-32 26-58 58-58z" fill="none" stroke="rgba(17,24,39,0.12)" stroke-width="6"/>
+
+  <!-- question mark -->
+  <g fill="#0f172a" opacity="0.88">
+    <path d="M256 160c-42 0-74 24-74 60 0 8 6 14 14 14h22c8 0 14-6 14-14 0-14 10-24 24-24 16 0 26 8 26 20 0 12-8 18-20 26-20 14-34 30-34 56v8c0 8 6 14 14 14h28c8 0 14-6 14-14v-2c0-14 8-22 22-32 18-12 34-28 34-60 0-42-34-68-84-68z"/>
+    <circle cx="256" cy="348" r="18"/>
+  </g>
+</svg>
