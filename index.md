@@ -76,36 +76,28 @@ title: Welcome to Dio's Games!
   }
 </style>
 
+{% assign icons = site.static_files
+  | where_exp: "f", "f.extname == '.svg' and f.name contains '_icon.svg'"
+  | sort: "path"
+%}
+
 <div class="home-screen">
   <div class="home-grid">
-    <a class="app-tile" href="tic-tac-toe/tic-tac-toe.html">
-      <img class="app-icon" alt="Tic-Tac-Toe" src="tic-tac-toe/Tic-Tac-Toe_icon.svg" />
-      <div class="app-name">Tic-Tac-Toe</div>
-    </a>
+    {% for icon in icons %}
+      {% assign relpath = icon.path | remove_first: "/" %}
+      {% assign parts = relpath | split: "/" %}
+      {% assign folder = parts[0] %}
+      {% assign app_name = icon.basename | replace: "_icon", "" %}
 
-    <a class="app-tile" href="trivia-game/index.html">
-      <img class="app-icon" alt="Trivia Game" src="trivia-game/Trivia%20Game_icon.svg" />
-      <div class="app-name">Trivia Game</div>
-    </a>
+      {% assign entry = folder | append: "/index.html" %}
+      {% if folder == "tic-tac-toe" %}
+        {% assign entry = folder | append: "/tic-tac-toe.html" %}
+      {% endif %}
 
-    <a class="app-tile" href="addition/index.html">
-      <img class="app-icon" alt="Long Addition" src="addition/Long%20Addition_icon.svg" />
-      <div class="app-name">Long Addition</div>
-    </a>
-
-    <a class="app-tile" href="subtraction/index.html">
-      <img class="app-icon" alt="Long Subtraction" src="subtraction/Long%20Subtraction_icon.svg" />
-      <div class="app-name">Long Subtraction</div>
-    </a>
-
-    <a class="app-tile" href="rng-game/index.html">
-      <img class="app-icon" alt="Oliveira's RNG" src="rng-game/Oliveira%27s%20RNG_icon.svg" />
-      <div class="app-name">Oliveira's RNG</div>
-    </a>
-
-    <a class="app-tile" href="equation-solver/index.html">
-      <img class="app-icon" alt="Equation Solver" src="equation-solver/Equation%20Solver_icon.svg" />
-      <div class="app-name">Equation Solver</div>
-    </a>
+      <a class="app-tile" href="{{ entry | relative_url }}">
+        <img class="app-icon" alt="{{ app_name }}" src="{{ icon.path | relative_url | replace: ' ', '%20' | replace: "'", '%27' }}" />
+        <div class="app-name">{{ app_name }}</div>
+      </a>
+    {% endfor %}
   </div>
 </div>
