@@ -76,10 +76,7 @@ title: Welcome to Dio's Games!
   }
 </style>
 
-{% assign icons = site.static_files
-  | where_exp: "f", "f.extname == '.svg' and f.name contains '_icon.svg'"
-  | sort: "path"
-%}
+{% assign icons = site.static_files | where_exp: "f", "f.extname == '.svg' and f.name contains '_icon.svg'" | sort: "path" %}
 
 <div class="home-screen">
   <div class="home-grid">
