@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Subtraction Trainer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Long Subtraction Trainer</h1>
+
+        <div class="toolbar">
+            <div class="control">
+                <label for="numDigits">Digits per number (2-5)</label>
+                <input type="number" id="numDigits" min="2" max="5" value="2">
+            </div>
+            <button class="primary" onclick="generateProblem()">Generate Problem</button>
+        </div>
+
+        <div id="subtractionArea" style="display:none">
+            <div class="labeledRow">
+                <div class="rowLabel">Borrows</div>
+                <table id="borrowTable"></table>
+            </div>
+            <div class="labeledRow">
+                <div class="rowLabel"></div>
+                <table id="numberTable"></table>
+            </div>
+            <div class="labeledRow">
+                <div class="rowLabel">Result</div>
+                <table id="resultTable"></table>
+            </div>
+        </div>
+
+        <button id="checkAnswerBtn" style="display:none" onclick="checkAnswer()">Check Answer</button>
+        <p id="feedback" style="display:none"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
