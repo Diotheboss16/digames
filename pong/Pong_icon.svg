@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Pong">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34d399"/>
+      <stop offset="1" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="40" y="40" width="432" height="432" rx="96" fill="url(#bg)"/>
+
+  <rect x="252" y="118" width="8" height="276" rx="4" fill="#0b1220" fill-opacity="0.55"/>
+  <rect x="120" y="170" width="22" height="172" rx="11" fill="#0b1220" fill-opacity="0.90"/>
+  <rect x="370" y="170" width="22" height="172" rx="11" fill="#0b1220" fill-opacity="0.90"/>
+  <circle cx="256" cy="256" r="18" fill="#0b1220" fill-opacity="0.90"/>
+</svg>

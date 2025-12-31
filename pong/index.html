@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Pong</h1>
+
+    <div class="toolbar">
+      <div class="help">
+        Left: <kbd>W</kbd>/<kbd>S</kbd>
+        <span class="sep">•</span>
+        Right: <kbd>↑</kbd>/<kbd>↓</kbd>
+        <span class="sep">•</span>
+        Serve: <kbd>Space</kbd>
+      </div>
+
+      <div class="speedControl">
+        <label for="speed">Ball speed</label>
+        <div class="speedRow">
+          <input id="speed" type="range" min="200" max="800" step="10" value="430" />
+          <div class="speedValue"><span id="speedVal">430</span></div>
+        </div>
+      </div>
+
+      <button id="resetBtn" class="primary" type="button">Reset</button>
+    </div>
+
+    <div class="scoreboard" aria-label="Score">
+      <div class="score" id="leftScore">0</div>
+      <div class="score-divider">:</div>
+      <div class="score" id="rightScore">0</div>
+    </div>
+
+    <div class="canvasWrap">
+      <canvas id="game" width="820" height="460" aria-label="Pong game"></canvas>
+    </div>
+
+    <p class="status" id="status">Press Space to serve.</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
