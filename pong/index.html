@@ -27,6 +27,34 @@
         </div>
       </div>
 
+      <div class="players" aria-label="Players">
+        <div class="player">
+          <span class="playerLabel">Left</span>
+          <select id="leftType" aria-label="Left player type">
+            <option value="human" selected>Human</option>
+            <option value="ai">AI</option>
+          </select>
+          <select id="leftAi" class="hidden" aria-label="Left AI difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        <div class="player">
+          <span class="playerLabel">Right</span>
+          <select id="rightType" aria-label="Right player type">
+            <option value="human" selected>Human</option>
+            <option value="ai">AI</option>
+          </select>
+          <select id="rightAi" class="hidden" aria-label="Right AI difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+
       <button id="resetBtn" class="primary" type="button">Reset</button>
     </div>
 

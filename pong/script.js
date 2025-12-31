@@ -8,6 +8,19 @@ const resetBtn = document.getElementById("resetBtn");
 const speedEl = document.getElementById("speed");
 const speedValEl = document.getElementById("speedVal");
 
+const leftTypeEl = document.getElementById("leftType");
+const rightTypeEl = document.getElementById("rightType");
+const leftAiEl = document.getElementById("leftAi");
+const rightAiEl = document.getElementById("rightAi");
+
+function updatePlayerControlsUI() {
+  if (leftTypeEl && leftAiEl) leftAiEl.classList.toggle("hidden", leftTypeEl.value !== "ai");
+  if (rightTypeEl && rightAiEl) rightAiEl.classList.toggle("hidden", rightTypeEl.value !== "ai");
+}
+if (leftTypeEl) leftTypeEl.addEventListener("change", updatePlayerControlsUI);
+if (rightTypeEl) rightTypeEl.addEventListener("change", updatePlayerControlsUI);
+updatePlayerControlsUI();
+
 const WIN_SCORE = 7;
 let baseSpeed = speedEl ? parseInt(speedEl.value, 10) : 430;
 if (speedEl && speedValEl) {
@@ -68,7 +81,7 @@ function playLoseSound() {
 
 const keys = new Set();
 window.addEventListener("keydown", (e) => {
-  if (["ArrowUp", "ArrowDown", "Space"].includes(e.code)) e.preventDefault();
+  if (["ArrowUp", "ArrowDown", "Space", "KeyW", "KeyS"].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.code === "Space" && !state.inPlay) serve();
 });
@@ -89,15 +102,93 @@ const state = {
   rightScore: 0,
   inPlay: false,
   serveDir: 1,
+  ai: {
+    left: { t: 0, targetY: (H - PADDLE_H) / 2 },
+    right: { t: 0, targetY: (H - PADDLE_H) / 2 },
+  },
 };
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
+function aiEnabled(side) {
+  const el = side === "left" ? leftTypeEl : rightTypeEl;
+  return el ? el.value === "ai" : false;
+}
+
+function aiDifficulty(side) {
+  const el = side === "left" ? leftAiEl : rightAiEl;
+  return el ? el.value : "medium";
+}
+
+function aiParams(diff) {
+  switch (diff) {
+    case "easy":
+      return { reaction: 0.18, maxSpeed: 380, aimError: 55, k: 6 };
+    case "hard":
+      return { reaction: 0.04, maxSpeed: 660, aimError: 6, k: 9 };
+    default:
+      return { reaction: 0.10, maxSpeed: 520, aimError: 22, k: 8 };
+  }
+}
+
+function mod(n, m) {
+  return ((n % m) + m) % m;
+}
+
+function reflectY(y, top, bottom) {
+  const span = bottom - top;
+  const period = span * 2;
+  const ym = mod(y - top, period);
+  return ym <= span ? top + ym : bottom - (ym - span);
+}
+
+function predictBallYAtX(targetX) {
+  if (!state.inPlay || state.ball.vx === 0) return state.ball.y;
+  const t = (targetX - state.ball.x) / state.ball.vx;
+  if (!Number.isFinite(t) || t < 0) return state.ball.y;
+
+  const top = 10 + BALL_R;
+  const bottom = H - 10 - BALL_R;
+  const y = state.ball.y + state.ball.vy * t;
+  return reflectY(y, top, bottom);
+}
+
+function updateAi(side, dt) {
+  const paddle = side === "left" ? state.left : state.right;
+  const ai = state.ai[side];
+  const cfg = aiParams(aiDifficulty(side));
+
+  ai.t += dt;
+  if (ai.t >= cfg.reaction) {
+    ai.t = 0;
+
+    let target = (H - PADDLE_H) / 2;
+    if (state.inPlay) {
+      const towards = side === "left" ? state.ball.vx < 0 : state.ball.vx > 0;
+      if (towards) {
+        const targetX = side === "left" ? paddle.x + PADDLE_W : paddle.x;
+        target = predictBallYAtX(targetX) - PADDLE_H / 2;
+      }
+    }
+
+    target += (Math.random() * 2 - 1) * cfg.aimError;
+    ai.targetY = clamp(target, 12, H - 12 - PADDLE_H);
+  }
+
+  const dy = ai.targetY - paddle.y;
+  paddle.vy = clamp(dy * cfg.k, -cfg.maxSpeed, cfg.maxSpeed);
+}
+
 function resetPositions() {
   state.left.y = (H - PADDLE_H) / 2;
   state.right.y = (H - PADDLE_H) / 2;
+  state.ai.left.t = 0;
+  state.ai.right.t = 0;
+  state.ai.left.targetY = state.left.y;
+  state.ai.right.targetY = state.right.y;
+
   state.ball.x = W / 2;
   state.ball.y = H / 2;
   state.ball.vx = 0;
@@ -151,15 +242,23 @@ function bounceOffPaddle(paddle) {
 }
 
 function update(dt) {
-  const paddleSpeed = 520;
+  const humanPaddleSpeed = 520;
 
   state.left.vy = 0;
-  if (keys.has("KeyW")) state.left.vy = -paddleSpeed;
-  if (keys.has("KeyS")) state.left.vy = paddleSpeed;
+  if (aiEnabled("left")) {
+    updateAi("left", dt);
+  } else {
+    if (keys.has("KeyW")) state.left.vy = -humanPaddleSpeed;
+    if (keys.has("KeyS")) state.left.vy = humanPaddleSpeed;
+  }
 
   state.right.vy = 0;
-  if (keys.has("ArrowUp")) state.right.vy = -paddleSpeed;
-  if (keys.has("ArrowDown")) state.right.vy = paddleSpeed;
+  if (aiEnabled("right")) {
+    updateAi("right", dt);
+  } else {
+    if (keys.has("ArrowUp")) state.right.vy = -humanPaddleSpeed;
+    if (keys.has("ArrowDown")) state.right.vy = humanPaddleSpeed;
+  }
 
   state.left.y = clamp(state.left.y + state.left.vy * dt, 12, H - 12 - PADDLE_H);
   state.right.y = clamp(state.right.y + state.right.vy * dt, 12, H - 12 - PADDLE_H);
