@@ -90,9 +90,6 @@ title: Welcome to Dio's Games!
       {% assign app_name = icon.basename | replace: "_icon", "" %}
 
       {% assign entry = folder | append: "/index.html" %}
-      {% if folder == "tic-tac-toe" %}
-        {% assign entry = folder | append: "/tic-tac-toe.html" %}
-      {% endif %}
 
       <a class="app-tile" href="{{ entry | relative_url }}">
         <img class="app-icon" alt="{{ app_name }}" src="{{ icon.path | relative_url | replace: ' ', '%20' | replace: "'", '%27' }}" />
