@@ -12,6 +12,26 @@ const leftTypeEl = document.getElementById("leftType");
 const rightTypeEl = document.getElementById("rightType");
 const leftAiEl = document.getElementById("leftAi");
 const rightAiEl = document.getElementById("rightAi");
+const helpEl = document.getElementById("help");
+
+const isMobile = (() => {
+  const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const ua = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  return coarse || ua;
+})();
+
+function servePrompt() {
+  return isMobile ? "Tap to serve." : "Press Space to serve.";
+}
+
+function updateHelpText() {
+  if (!helpEl) return;
+  if (isMobile) {
+    helpEl.innerHTML = `Left/Right: drag paddles <span class="sep">•</span> Serve: <kbd>Tap</kbd>`;
+  } else {
+    helpEl.innerHTML = `Left: <kbd>W</kbd>/<kbd>S</kbd> <span class="sep">•</span> Right: <kbd>↑</kbd>/<kbd>↓</kbd> <span class="sep">•</span> Serve: <kbd>Space</kbd>`;
+  }
+}
 
 function updatePlayerControlsUI() {
   if (leftTypeEl && leftAiEl) leftAiEl.classList.toggle("hidden", leftTypeEl.value !== "ai");
@@ -20,6 +40,7 @@ function updatePlayerControlsUI() {
 if (leftTypeEl) leftTypeEl.addEventListener("change", updatePlayerControlsUI);
 if (rightTypeEl) rightTypeEl.addEventListener("change", updatePlayerControlsUI);
 updatePlayerControlsUI();
+updateHelpText();
 
 const WIN_SCORE = 7;
 let baseSpeed = speedEl ? parseInt(speedEl.value, 10) : 430;
@@ -83,7 +104,7 @@ const keys = new Set();
 window.addEventListener("keydown", (e) => {
   if (["ArrowUp", "ArrowDown", "Space", "KeyW", "KeyS"].includes(e.code)) e.preventDefault();
   keys.add(e.code);
-  if (e.code === "Space" && !state.inPlay) serve();
+  if (e.code === "Space" && !state.inPlay && !gameOver()) serve();
 });
 window.addEventListener("keyup", (e) => keys.delete(e.code));
 
@@ -108,6 +129,10 @@ const state = {
   },
 };
 
+function gameOver() {
+  return state.leftScore >= WIN_SCORE || state.rightScore >= WIN_SCORE;
+}
+
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
@@ -115,6 +140,64 @@ function clamp(v, min, max) {
 function aiEnabled(side) {
   const el = side === "left" ? leftTypeEl : rightTypeEl;
   return el ? el.value === "ai" : false;
+}
+
+const drag = {
+  left: { id: null, offsetY: 0 },
+  right: { id: null, offsetY: 0 },
+};
+
+function canvasToGamePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (W / rect.width),
+    y: (e.clientY - rect.top) * (H / rect.height),
+  };
+}
+
+function updatePaddleFromPointer(side, pointerId, y) {
+  const paddle = side === "left" ? state.left : state.right;
+  const slot = drag[side];
+  if (slot.id !== pointerId) return;
+  paddle.y = clamp(y - slot.offsetY, 12, H - 12 - PADDLE_H);
+}
+
+if (isMobile && canvas) {
+  canvas.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse") return;
+    e.preventDefault();
+
+    const { x, y } = canvasToGamePos(e);
+    const side = x < W / 2 ? "left" : "right";
+    if (!state.inPlay && !gameOver()) serve();
+    if (aiEnabled(side)) return;
+
+    const paddle = side === "left" ? state.left : state.right;
+    drag[side].id = e.pointerId;
+    drag[side].offsetY = y - paddle.y;
+
+    canvas.setPointerCapture?.(e.pointerId);
+    updatePaddleFromPointer(side, e.pointerId, y);
+  });
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "mouse") return;
+    if (drag.left.id !== e.pointerId && drag.right.id !== e.pointerId) return;
+    e.preventDefault();
+
+    const { y } = canvasToGamePos(e);
+    updatePaddleFromPointer("left", e.pointerId, y);
+    updatePaddleFromPointer("right", e.pointerId, y);
+  });
+
+  function endPointer(e) {
+    if (drag.left.id === e.pointerId) drag.left.id = null;
+    if (drag.right.id === e.pointerId) drag.right.id = null;
+    canvas.releasePointerCapture?.(e.pointerId);
+  }
+
+  canvas.addEventListener("pointerup", endPointer);
+  canvas.addEventListener("pointercancel", endPointer);
 }
 
 function aiDifficulty(side) {
@@ -194,7 +277,7 @@ function resetPositions() {
   state.ball.vx = 0;
   state.ball.vy = 0;
   state.inPlay = false;
-  statusEl.textContent = "Press Space to serve.";
+  statusEl.textContent = servePrompt();
 }
 
 function resetGame() {
@@ -245,23 +328,31 @@ function update(dt) {
   const humanPaddleSpeed = 520;
 
   state.left.vy = 0;
-  if (aiEnabled("left")) {
-    updateAi("left", dt);
-  } else {
-    if (keys.has("KeyW")) state.left.vy = -humanPaddleSpeed;
-    if (keys.has("KeyS")) state.left.vy = humanPaddleSpeed;
+  if (!(isMobile && drag.left.id != null)) {
+    if (aiEnabled("left")) {
+      updateAi("left", dt);
+    } else {
+      if (keys.has("KeyW")) state.left.vy = -humanPaddleSpeed;
+      if (keys.has("KeyS")) state.left.vy = humanPaddleSpeed;
+    }
   }
 
   state.right.vy = 0;
-  if (aiEnabled("right")) {
-    updateAi("right", dt);
-  } else {
-    if (keys.has("ArrowUp")) state.right.vy = -humanPaddleSpeed;
-    if (keys.has("ArrowDown")) state.right.vy = humanPaddleSpeed;
+  if (!(isMobile && drag.right.id != null)) {
+    if (aiEnabled("right")) {
+      updateAi("right", dt);
+    } else {
+      if (keys.has("ArrowUp")) state.right.vy = -humanPaddleSpeed;
+      if (keys.has("ArrowDown")) state.right.vy = humanPaddleSpeed;
+    }
   }
 
-  state.left.y = clamp(state.left.y + state.left.vy * dt, 12, H - 12 - PADDLE_H);
-  state.right.y = clamp(state.right.y + state.right.vy * dt, 12, H - 12 - PADDLE_H);
+  if (!(isMobile && drag.left.id != null)) {
+    state.left.y = clamp(state.left.y + state.left.vy * dt, 12, H - 12 - PADDLE_H);
+  }
+  if (!(isMobile && drag.right.id != null)) {
+    state.right.y = clamp(state.right.y + state.right.vy * dt, 12, H - 12 - PADDLE_H);
+  }
 
   if (!state.inPlay) return;
 
@@ -347,7 +438,7 @@ function draw() {
     ctx.fillStyle = "rgba(255,255,255,0.75)";
     ctx.font = "16px system-ui, -apple-system, Segoe UI, Roboto, Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Press Space to serve", W / 2, H / 2 + 90);
+    ctx.fillText(servePrompt(), W / 2, H / 2 + 90);
     ctx.restore();
   }
 }

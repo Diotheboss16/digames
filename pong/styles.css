@@ -175,6 +175,7 @@ canvas {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, #0b1220, #111827);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
+  touch-action: none;
 }
 
 .status {
