@@ -8,19 +8,33 @@
 <body>
     <div class="container">
         <h1>Oliveira's RNG Game</h1>
-        <p id="message">Press Roll to start!</p>
-        <div class="stats">
-            <p>Coins: <span id="coins">0</span></p>
-            <p>Tries: <span id="rolls">0</span></p>
-            <p>Best: <span id="best">none</span></p>
+        <div class="top">
+            <div class="left">
+                <p id="message">Press Roll to start!</p>
+                <div id="auraDisplay" class="aura-display" style="--aura-color: #4f8cff">
+                    <img id="auraImg" class="aura-img" alt="Aura icon" />
+                    <div class="aura-name" id="auraName">—</div>
+                </div>
+            </div>
+
+            <div class="right">
+                <div class="stats">
+                    <div class="stat"><span class="label">Coins</span><span id="coins" class="value">0</span></div>
+                    <div class="stat"><span class="label">Rolls</span><span id="rolls" class="value">0</span></div>
+                    <div class="stat"><span class="label">Best</span><span id="best" class="value">none</span></div>
+                </div>
+                <div class="buttons">
+                    <button id="rollBtn" onclick="roll()">🎲 Roll</button>
+                    <button onclick="toggleTable()">📊 Aura Table</button>
+                    <button onclick="toggleShop()">🛍️ Shop</button>
+                </div>
+            </div>
         </div>
-        <div class="buttons">
-            <button onclick="roll()">🎲 Roll</button>
-            <button onclick="toggleTable()">📊 Aura Table</button>
-            <button onclick="toggleShop()">🛍️ Shop</button>
+
+        <div class="panel">
+            <div id="table" class="hidden"></div>
+            <div id="shop" class="hidden"></div>
         </div>
-        <div id="table" class="hidden"></div>
-        <div id="shop" class="hidden"></div>
     </div>
     <script src="main.js"></script>
 </body>
