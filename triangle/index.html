@@ -20,8 +20,15 @@
         <div class="statLine"><span class="statLabel">Angle 2</span> <span id="a2" class="statVal">—</span></div>
         <div class="statLine"><span class="statLabel">Angle 3</span> <span id="a3" class="statVal">—</span></div>
         <div class="statLine"><span class="statLabel">Sum</span> <span id="sum" class="statVal">—</span></div>
-        <div class="statLine"><span class="statLabel">Sides</span> <span id="sideClass" class="statVal">—</span></div>
-        <div class="statLine"><span class="statLabel">Angles</span> <span id="angleClass" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Side 1–2</span> <span id="s1" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Side 2–3</span> <span id="s2" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Side 3–1</span> <span id="s3" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Base</span> <span id="base" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Height</span> <span id="height" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Perimeter</span> <span id="perim" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Area</span> <span id="area" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">By sides</span> <span id="sideClass" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">By angles</span> <span id="angleClass" class="statVal">—</span></div>
       </div>
 
       <button id="resetBtn" class="primary" type="button">Reset</button>
@@ -30,6 +37,91 @@
     <div class="canvasWrap">
       <canvas id="game" width="820" height="460" aria-label="Triangle canvas"></canvas>
     </div>
+
+    <section class="learn" aria-label="Triangle facts">
+      <div class="learnCol">
+        <div class="learnCard">
+          <h2>Classifying triangles</h2>
+          <p><strong>By sides:</strong>
+            <button type="button" class="textBtn presetBtn" data-preset="equilateral">Equilateral</button>
+            (3 equal sides, 60°–60°–60°),
+            <button type="button" class="textBtn presetBtn" data-preset="isosceles">Isosceles</button>
+            (2 equal sides ⇒ base angles equal),
+            <button type="button" class="textBtn presetBtn" data-preset="scalene">Scalene</button>
+            (all sides different).
+          </p>
+          <p><strong>By angles:</strong>
+            <button type="button" class="textBtn presetBtn" data-preset="acute">Acute</button>
+            (all &lt; 90°),
+            <button type="button" class="textBtn presetBtn" data-preset="right">Right</button>
+            (one = 90°),
+            <button type="button" class="textBtn presetBtn" data-preset="obtuse">Obtuse</button>
+            (one &gt; 90°).
+          </p>
+          <p class="learnHint">Click a type above to draw an example triangle you can then reshape.</p>
+        </div>
+
+        <div class="learnCard">
+          <h2>Angle sum</h2>
+          <p>
+            In a flat (Euclidean) plane, the three interior angles of any non-degenerate triangle always add up to
+            <strong>180°</strong>.
+          </p>
+          <p>
+            Drag the vertices and watch how the angles change while the <strong>Sum</strong> stays at 180°.
+          </p>
+        </div>
+      </div>
+
+      <div class="learnCol">
+        <div class="learnCard">
+          <h2>Perimeter &amp; area</h2>
+          <p>
+            The <strong>perimeter</strong> is the total distance around the triangle:
+            <strong>P = a + b + c</strong>.
+          </p>
+          <p>
+            A simple way to compute <strong>area</strong> is:
+            <strong>A = (base × height) / 2</strong>.
+          </p>
+          <p>
+            For a <strong>right triangle</strong>, the two sides that meet at the 90° angle are perpendicular, so you can use them as
+            base and height: <strong>A = (leg₁ × leg₂) / 2</strong>.
+          </p>
+          <p>
+            One way to picture this: draw the right triangle inside a rectangle. The diagonal splits the rectangle into
+            <strong>two equal triangles</strong>, so one triangle is exactly <strong>half</strong> the rectangle.
+          </p>
+          <figure class="learnFigure">
+            <svg viewBox="0 0 220 150" role="img" aria-label="A rectangle split into two right triangles by a diagonal">
+              <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6" fill="currentColor" />
+                </marker>
+              </defs>
+
+              <!-- rectangle -->
+              <rect x="20" y="20" width="160" height="100" fill="none" stroke="currentColor" stroke-width="2" />
+
+              <!-- triangle (half the rectangle) -->
+              <path d="M20 120 L20 20 L180 120 Z" fill="rgba(37,99,235,0.25)" stroke="rgba(37,99,235,0.9)" stroke-width="2" />
+
+              <!-- diagonal -->
+              <line x1="20" y1="20" x2="180" y2="120" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" />
+
+              <!-- base arrow -->
+              <line x1="20" y1="132" x2="180" y2="132" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)" />
+              <text x="90" y="146" text-anchor="middle" font-size="12" fill="currentColor">base</text>
+
+              <!-- height arrow -->
+              <line x1="8" y1="120" x2="8" y2="20" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)" />
+              <text x="14" y="18" text-anchor="start" font-size="12" fill="currentColor">height</text>
+            </svg>
+            <figcaption>Rectangle area = base × height, so triangle area = (base × height) / 2.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
 
     <p class="status" id="status">Tip: avoid stacking points on top of each other (degenerate triangle).</p>
   </div>

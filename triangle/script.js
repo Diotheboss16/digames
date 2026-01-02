@@ -5,10 +5,18 @@ const a1El = document.getElementById("a1");
 const a2El = document.getElementById("a2");
 const a3El = document.getElementById("a3");
 const sumEl = document.getElementById("sum");
+const s1El = document.getElementById("s1");
+const s2El = document.getElementById("s2");
+const s3El = document.getElementById("s3");
+const baseEl = document.getElementById("base");
+const heightEl = document.getElementById("height");
+const perimEl = document.getElementById("perim");
+const areaEl = document.getElementById("area");
 const sideClassEl = document.getElementById("sideClass");
 const angleClassEl = document.getElementById("angleClass");
 const statusEl = document.getElementById("status");
 const resetBtn = document.getElementById("resetBtn");
+const presetBtns = document.querySelectorAll(".presetBtn");
 
 const W = canvas.width;
 const H = canvas.height;
@@ -16,7 +24,7 @@ const H = canvas.height;
 const VERT_R = 7;
 const PICK_R = 14;
 const PAD = 14;
-const GRID = 5;
+const GRID = 10;
 
 function snap(v) {
   return Math.round(v / GRID) * GRID;
@@ -148,7 +156,12 @@ canvas.addEventListener("pointermove", (e) => {
 
 function formatDegInt(x) {
   if (!Number.isFinite(x)) return "—";
-  return `${Math.round(x)}°`;
+  return `${x}°`;
+}
+
+function formatLenInt(x) {
+  if (!Number.isFinite(x)) return "—";
+  return String(Math.round(x));
 }
 
 function updateUI() {
@@ -157,14 +170,6 @@ function updateUI() {
     angleDeg(vertices[0], vertices[1], vertices[2]),
     angleDeg(vertices[0], vertices[2], vertices[1]),
   ];
-  const anglesInt = angles.map((x) => (Number.isFinite(x) ? Math.round(x) : NaN));
-
-  a1El.textContent = formatDegInt(angles[0]);
-  a2El.textContent = formatDegInt(angles[1]);
-  a3El.textContent = formatDegInt(angles[2]);
-
-  const total = anglesInt.every(Number.isFinite) ? anglesInt[0] + anglesInt[1] + anglesInt[2] : NaN;
-  sumEl.textContent = Number.isFinite(total) ? `${total}°` : "—";
 
   const a2 = dist2(vertices[0], vertices[1]);
   const b2 = dist2(vertices[1], vertices[2]);
@@ -172,6 +177,43 @@ function updateUI() {
 
   const degenerate =
     a2 < 1 || b2 < 1 || c2 < 1 || Math.abs(triArea2(vertices[0], vertices[1], vertices[2])) < 3;
+
+  let anglesInt = angles.map((x) => (Number.isFinite(x) ? Math.round(x) : NaN));
+
+  if (!degenerate && angles.every(Number.isFinite)) {
+    const residuals = angles.map((a, i) => a - anglesInt[i]);
+    let diff = 180 - (anglesInt[0] + anglesInt[1] + anglesInt[2]);
+
+    if (diff > 0) {
+      const order = [0, 1, 2].sort((i, j) => residuals[j] - residuals[i]);
+      for (let k = 0; k < diff; k++) anglesInt[order[k % 3]] += 1;
+    } else if (diff < 0) {
+      const order = [0, 1, 2].sort((i, j) => residuals[i] - residuals[j]);
+      for (let k = 0; k < -diff; k++) anglesInt[order[k % 3]] -= 1;
+    }
+  }
+
+  a1El.textContent = formatDegInt(anglesInt[0]);
+  a2El.textContent = formatDegInt(anglesInt[1]);
+  a3El.textContent = formatDegInt(anglesInt[2]);
+  sumEl.textContent = !degenerate ? "180°" : "—";
+
+  const s12 = dist(vertices[0], vertices[1]);
+  const s23 = dist(vertices[1], vertices[2]);
+  const s31 = dist(vertices[2], vertices[0]);
+  s1El.textContent = formatLenInt(s12);
+  s2El.textContent = formatLenInt(s23);
+  s3El.textContent = formatLenInt(s31);
+
+  const perim = s12 + s23 + s31;
+  const area = Math.abs(triArea2(vertices[0], vertices[1], vertices[2])) / 2;
+  const base = Math.max(s12, s23, s31);
+  const height = base > 1e-9 ? (2 * area) / base : NaN;
+
+  baseEl.textContent = !degenerate ? formatLenInt(base) : "—";
+  heightEl.textContent = !degenerate ? formatLenInt(height) : "—";
+  perimEl.textContent = !degenerate ? formatLenInt(perim) : "—";
+  areaEl.textContent = !degenerate ? formatLenInt(area) : "—";
 
   sideClassEl.textContent = degenerate ? "Degenerate" : classifyBySidesSquared(a2, b2, c2);
   angleClassEl.textContent = degenerate ? "Degenerate" : classifyByAngles(anglesInt);
@@ -225,6 +267,83 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
+
+function setPreset(name) {
+  const side = Math.min(W, H) * 0.6;
+  const cx = W / 2;
+  const cy = H / 2;
+
+  const clampSnap = (p) => ({
+    x: snap(clamp(p.x, PAD, W - PAD)),
+    y: snap(clamp(p.y, PAD, H - PAD)),
+  });
+
+  let vs;
+  switch (name) {
+    case "equilateral": {
+      const h = (Math.sqrt(3) / 2) * side;
+      vs = [
+        { x: cx, y: cy - h / 2 },
+        { x: cx - side / 2, y: cy + h / 2 },
+        { x: cx + side / 2, y: cy + h / 2 },
+      ];
+      break;
+    }
+    case "isosceles": {
+      const h = side * 0.55;
+      vs = [
+        { x: cx, y: cy - h / 2 },
+        { x: cx - side / 2, y: cy + h / 2 },
+        { x: cx + side / 2, y: cy + h / 2 },
+      ];
+      break;
+    }
+    case "scalene": {
+      vs = [
+        { x: cx - side * 0.45, y: cy + side * 0.25 },
+        { x: cx + side * 0.35, y: cy + side * 0.3 },
+        { x: cx + side * 0.05, y: cy - side * 0.4 },
+      ];
+      break;
+    }
+    case "right": {
+      const o = { x: cx - side * 0.25, y: cy + side * 0.25 };
+      vs = [
+        { x: o.x, y: o.y - side * 0.55 },
+        o,
+        { x: o.x + side * 0.7, y: o.y },
+      ];
+      break;
+    }
+    case "acute": {
+      vs = [
+        { x: cx - side * 0.45, y: cy + side * 0.25 },
+        { x: cx + side * 0.45, y: cy + side * 0.25 },
+        { x: cx + side * 0.1, y: cy - side * 0.4 },
+      ];
+      break;
+    }
+    case "obtuse": {
+      vs = [
+        { x: cx - side * 0.45, y: cy + side * 0.25 },
+        { x: cx + side * 0.55, y: cy + side * 0.25 },
+        { x: cx - side * 0.25, y: cy - side * 0.05 },
+      ];
+      break;
+    }
+    default:
+      resetTriangle();
+      return;
+  }
+
+  vertices = vs.map(clampSnap);
+  selected = null;
+  updateUI();
+}
+
+presetBtns.forEach((btn) => {
+  btn.addEventListener("click", () => setPreset(btn.dataset.preset));
+});
 
 resetBtn.addEventListener("click", resetTriangle);
 resetTriangle();

@@ -80,6 +80,18 @@ button {
   cursor: pointer;
 }
 
+button.textBtn {
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
 button.primary {
   border-color: var(--accent);
   background: var(--accent);
@@ -106,10 +118,70 @@ canvas {
   touch-action: none;
 }
 
+.learn {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 14px;
+  text-align: left;
+}
+
+.learnCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.learnCard {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.learnCard h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.learnCard p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.learnHint {
+  color: var(--muted) !important;
+  font-size: 13px !important;
+}
+
+.learnFigure {
+  margin: 10px 0 0;
+}
+
+.learnFigure svg {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin: 8px auto;
+}
+
+.learnFigure figcaption {
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .status {
   margin: 12px 0 0;
   color: var(--muted);
   font-size: 14px;
+}
+
+@media (max-width: 740px) {
+  .learn {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -126,5 +198,9 @@ canvas {
   button {
     background: #0b1220;
     color: var(--text);
+  }
+
+  .learnCard {
+    background: rgba(15, 23, 42, 0.6);
   }
 }
