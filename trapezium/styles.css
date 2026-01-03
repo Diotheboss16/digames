@@ -40,69 +40,6 @@ h1 {
   margin-bottom: 12px;
 }
 
-.actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.quizPanel {
-  margin: 10px 0 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  text-align: left;
-}
-
-.quizTop {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.quizProgress {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.quizQuestion {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.quizControls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.quizLabel {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.quizAnswer {
-  height: 36px;
-  width: 120px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--text);
-}
-
-.quizFeedback {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.quizMode .stats,
-.quizMode .help {
-  display: none;
-}
-
 .help {
   font-size: 13px;
   color: var(--muted);
@@ -110,7 +47,7 @@ h1 {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
   gap: 6px 14px;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -131,6 +68,16 @@ h1 {
 
 .statVal {
   font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 button {
@@ -166,6 +113,28 @@ button.primary:hover {
   border-color: var(--accent-hover);
 }
 
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 10px 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.controlRow label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.controlRow input[type="range"] {
+  width: 100%;
+}
+
 .canvasWrap {
   display: flex;
   justify-content: center;
@@ -178,7 +147,6 @@ canvas {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, #0b1220, #111827);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.20);
-  touch-action: none;
 }
 
 .learn {
@@ -241,8 +209,70 @@ canvas {
   font-size: 14px;
 }
 
+.quizPanel {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-align: left;
+}
+
+.quizTop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quizProgress {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.quizQuestion {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.quizControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.quizLabel {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.quizAnswer {
+  height: 36px;
+  width: 120px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+}
+
+.quizFeedback {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.quizMode .stats,
+.quizMode .help,
+.quizMode .controls {
+  display: none;
+}
+
 @media (max-width: 740px) {
   .learn {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
     grid-template-columns: 1fr;
   }
 }
@@ -263,12 +293,12 @@ canvas {
     color: var(--text);
   }
 
+  .learnCard {
+    background: rgba(15, 23, 42, 0.6);
+  }
+
   .quizAnswer {
     background: #0b1220;
     color: var(--text);
-  }
-
-  .learnCard {
-    background: rgba(15, 23, 42, 0.6);
   }
 }

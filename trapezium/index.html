@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trapezium</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Trapezium</h1>
+
+    <div class="toolbar">
+      <div class="help" id="helpText">
+        Use the sliders to change the trapezium.
+      </div>
+
+      <div class="stats" aria-label="Trapezium stats">
+        <div class="statLine"><span class="statLabel">Top base (a)</span> <span id="a" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Bottom base (b)</span> <span id="b" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Height (h)</span> <span id="h" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Area</span> <span id="area" class="statVal">—</span></div>
+        <div class="statLine"><span class="statLabel">Type</span> <span id="kind" class="statVal">—</span></div>
+      </div>
+
+      <div class="actions">
+        <button id="quizBtn" type="button">Quiz</button>
+        <button id="resetBtn" class="primary" type="button">Reset</button>
+      </div>
+    </div>
+
+    <div id="controls" class="controls" aria-label="Trapezium controls">
+      <div class="controlRow">
+        <label for="topBase">Top base (a): <span id="topBaseVal" class="mono">—</span> cm</label>
+        <input id="topBase" type="range" min="2" max="12" step="1" />
+      </div>
+      <div class="controlRow">
+        <label for="bottomBase">Bottom base (b): <span id="bottomBaseVal" class="mono">—</span> cm</label>
+        <input id="bottomBase" type="range" min="4" max="16" step="1" />
+      </div>
+      <div class="controlRow">
+        <label for="height">Height (h): <span id="heightVal" class="mono">—</span> cm</label>
+        <input id="height" type="range" min="2" max="10" step="1" />
+      </div>
+      <div class="controlRow">
+        <label for="offset">Top shift: <span id="offsetVal" class="mono">—</span> cm</label>
+        <input id="offset" type="range" min="-6" max="6" step="1" />
+      </div>
+    </div>
+
+    <div id="quizPanel" class="quizPanel" hidden aria-label="Trapezium quiz">
+      <div class="quizTop">
+        <div id="quizProgress" class="quizProgress"></div>
+        <div id="quizQuestion" class="quizQuestion"></div>
+      </div>
+      <div class="quizControls">
+        <label class="quizLabel" for="quizAnswer">Answer:</label>
+        <input id="quizAnswer" class="quizAnswer" type="number" inputmode="decimal" />
+        <button id="quizSubmit" class="primary" type="button">Check</button>
+        <button id="quizNext" type="button">Next</button>
+        <button id="quizExit" type="button">Exit quiz</button>
+      </div>
+      <div id="quizFeedback" class="quizFeedback" aria-live="polite"></div>
+    </div>
+
+    <div class="canvasWrap">
+      <canvas id="game" width="820" height="460" aria-label="Trapezium canvas"></canvas>
+    </div>
+
+    <section class="learn" aria-label="Trapezium facts">
+      <div class="learnCol">
+        <div class="learnCard">
+          <h2>What is a trapezium?</h2>
+          <p>
+            A <strong>trapezium</strong> is a quadrilateral (4-sided shape) with <strong>one pair of parallel sides</strong>.
+          </p>
+          <p class="learnHint">The parallel sides are called the <strong>bases</strong>.</p>
+        </div>
+
+        <div class="learnCard">
+          <h2>Classifying trapeziums</h2>
+          <p class="learnHint">
+            Different books use slightly different definitions. Here we use an <strong>inclusive</strong> idea:
+            a trapezium has <strong>at least one</strong> pair of parallel sides.
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="trapezium">Trapezium</button>:
+            </strong>
+            one pair of parallel sides (the bases).
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="isosceles">Isosceles trapezium</button>:
+            </strong>
+            the two non-parallel sides are the same length (it looks symmetric).
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="right">Right trapezium</button>:
+            </strong>
+            has a right angle (90°).
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="parallelogram">Parallelogram</button>:
+            </strong>
+            a special trapezium where <strong>a = b</strong> (both pairs of opposite sides are parallel).
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="rectangle">Rectangle</button>:
+            </strong>
+            a parallelogram with right angles.
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="square">Square</button>:
+            </strong>
+            a rectangle with all sides the same length.
+          </p>
+          <p>
+            <strong>
+              <button type="button" class="textBtn presetBtn" data-preset="rhombus">Rhombus</button>:
+            </strong>
+            a parallelogram with all sides the same length.
+          </p>
+          <p class="learnHint">Click a type above to draw an example.</p>
+        </div>
+      </div>
+
+      <div class="learnCol">
+        <div class="learnCard">
+          <h2>Area</h2>
+          <p>
+            The area of a trapezium is the average of the two bases, times the height:
+            <strong>A = (a + b) / 2 × h</strong>.
+          </p>
+          <p>
+            Example: a = 6 cm, b = 10 cm, h = 4 cm
+            → A = (6 + 10)/2 × 4 = 8 × 4 = <strong>32 cm²</strong>.
+          </p>
+          <p>
+            <strong>Special case:</strong> if <strong>a = b</strong>, it becomes a parallelogram and
+            <strong>A = a × h</strong>.
+          </p>
+          <p>
+            <strong>Special case:</strong> a rectangle is a parallelogram with right angles, so its area is
+            <strong>width × height</strong>.
+          </p>
+          <p>
+            <strong>Special case:</strong> a square has equal sides, so its area is
+            <strong>side × side</strong>.
+          </p>
+          <figure class="learnFigure">
+            <svg viewBox="0 0 240 150" role="img" aria-label="Trapezium with bases a and b and height h">
+              <path d="M50 120 L190 120 L160 40 L80 40 Z" fill="rgba(37,99,235,0.25)" stroke="rgba(37,99,235,0.9)" stroke-width="2" />
+              <line x1="80" y1="40" x2="80" y2="120" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" />
+              <text x="120" y="136" text-anchor="middle" font-size="12" fill="currentColor">b</text>
+              <text x="120" y="28" text-anchor="middle" font-size="12" fill="currentColor">a</text>
+              <text x="66" y="82" text-anchor="middle" font-size="12" fill="currentColor">h</text>
+            </svg>
+            <figcaption>Area = (a + b) / 2 × h.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <p class="status" id="status">Tip: try making a = b (it becomes a parallelogram).</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

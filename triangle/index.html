@@ -31,7 +31,25 @@
         <div class="statLine"><span class="statLabel">By angles</span> <span id="angleClass" class="statVal">—</span></div>
       </div>
 
-      <button id="resetBtn" class="primary" type="button">Reset</button>
+      <div class="actions">
+        <button id="quizBtn" class="primary" type="button">Quiz!</button>
+        <button id="resetBtn" class="primary" type="button">Reset</button>
+      </div>
+    </div>
+
+    <div id="quizPanel" class="quizPanel" hidden aria-label="Triangle quiz">
+      <div class="quizTop">
+        <div id="quizProgress" class="quizProgress"></div>
+        <div id="quizQuestion" class="quizQuestion"></div>
+      </div>
+      <div class="quizControls">
+        <label class="quizLabel" for="quizAnswer">Answer:</label>
+        <input id="quizAnswer" class="quizAnswer" type="number" inputmode="decimal" />
+        <button id="quizSubmit" class="primary" type="button">Check</button>
+        <button id="quizNext" type="button">Next</button>
+        <button id="quizExit" type="button">Exit quiz</button>
+      </div>
+      <div id="quizFeedback" class="quizFeedback" aria-live="polite"></div>
     </div>
 
     <div class="canvasWrap">
@@ -71,6 +89,27 @@
             Drag the vertices and watch how the angles change while the <strong>Sum</strong> stays at 180°.
           </p>
         </div>
+
+        <div class="learnCard">
+          <h2>Pythagoras’ theorem</h2>
+          <p>
+            In a <strong>right triangle</strong> (one 90° angle), the side lengths satisfy:<br><br>
+            <strong>x² + y² = z²</strong><br><br>
+            (where the diagonal side <strong>z</strong> is calledd the hypotenuse).
+          </p>
+          <figure class="learnFigure">
+            <svg viewBox="0 0 240 150" role="img" aria-label="Right triangle with sides x, y and z">
+              <path d="M40 120 L40 30 L190 120 Z" fill="rgba(37,99,235,0.25)" stroke="rgba(37,99,235,0.9)" stroke-width="2" />
+              <path d="M40 108 L52 108 L52 120" fill="none" stroke="currentColor" stroke-width="2" />
+              <text x="115" y="136" text-anchor="middle" font-size="12" fill="currentColor">x</text>
+              <text x="26" y="78" text-anchor="middle" font-size="12" fill="currentColor">y</text>
+              <text x="126" y="70" text-anchor="middle" font-size="12" fill="currentColor">z</text>
+            </svg>
+            <figcaption>
+              Example: 3 cm, 4 cm, 5 cm → 3² + 4² = 9 + 16 = 25 = 5².
+            </figcaption>
+          </figure>
+        </div>
       </div>
 
       <div class="learnCol">
@@ -81,7 +120,7 @@
             <strong>P = a + b + c</strong>.
           </p>
           <p>
-            A simple way to compute <strong>area</strong> is:
+            A simple way to compute the <strong>area</strong> of a right triangle is:
             <strong>A = (base × height) / 2</strong>.
           </p>
           <p>

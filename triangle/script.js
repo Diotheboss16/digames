@@ -18,6 +18,16 @@ const statusEl = document.getElementById("status");
 const resetBtn = document.getElementById("resetBtn");
 const presetBtns = document.querySelectorAll(".presetBtn");
 
+const quizBtn = document.getElementById("quizBtn");
+const quizPanel = document.getElementById("quizPanel");
+const quizProgressEl = document.getElementById("quizProgress");
+const quizQuestionEl = document.getElementById("quizQuestion");
+const quizAnswerEl = document.getElementById("quizAnswer");
+const quizSubmitBtn = document.getElementById("quizSubmit");
+const quizNextBtn = document.getElementById("quizNext");
+const quizExitBtn = document.getElementById("quizExit");
+const quizFeedbackEl = document.getElementById("quizFeedback");
+
 const W = canvas.width;
 const H = canvas.height;
 
@@ -91,6 +101,20 @@ function classifyByAngles(anglesInt) {
 let vertices;
 let selected = null;
 
+let mode = "play"; // "play" | "quiz"
+let quiz = {
+  question: null,
+  answer: null,
+  unit: "",
+  labels: null,
+  rightAngleAt: null,
+  knownAngles: null,
+  total: 10,
+  qNo: 0,
+  correct: 0,
+  checked: false,
+};
+
 function resetTriangle() {
   const side = Math.min(W, H) * 0.55;
   const h = (Math.sqrt(3) / 2) * side;
@@ -124,6 +148,7 @@ function pickVertex(p) {
 }
 
 canvas.addEventListener("pointerdown", (e) => {
+  if (mode === "quiz") return;
   const p = canvasPointFromEvent(e);
   const idx = pickVertex(p);
   if (idx === null) return;
@@ -144,6 +169,7 @@ canvas.addEventListener("pointercancel", () => {
 });
 
 canvas.addEventListener("pointermove", (e) => {
+  if (mode === "quiz") return;
   if (selected === null) return;
   const p = canvasPointFromEvent(e);
   vertices[selected] = {
@@ -220,7 +246,9 @@ function updateUI() {
 
   statusEl.textContent = degenerate
     ? "Degenerate triangle (points overlap / nearly collinear)."
-    : `Drag vertices to reshape the triangle. (Snaps to ${GRID}px grid)`;
+    : mode === "quiz"
+      ? "Quiz mode: the triangle is locked (no dragging)."
+      : `Drag vertices to reshape the triangle. (Snaps to ${GRID}px grid)`;
 }
 
 function draw() {
@@ -261,6 +289,8 @@ function draw() {
     ctx.fillText(String(i + 1), v.x + 10, v.y - 14);
     ctx.restore();
   }
+
+  if (mode === "quiz") drawQuizOverlay();
 }
 
 function loop() {
@@ -341,10 +371,319 @@ function setPreset(name) {
   updateUI();
 }
 
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function choice(arr) {
+  return arr[randInt(0, arr.length - 1)];
+}
+
+function centerVertices(vs) {
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  for (const p of vs) {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  }
+
+  let tx = W / 2 - (minX + maxX) / 2;
+  let ty = H / 2 - (minY + maxY) / 2;
+
+  let shifted = vs.map((p) => ({ x: p.x + tx, y: p.y + ty }));
+
+  // ensure padding
+  minX = Infinity;
+  minY = Infinity;
+  maxX = -Infinity;
+  maxY = -Infinity;
+  for (const p of shifted) {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  }
+
+  let adjX = 0;
+  let adjY = 0;
+  if (minX < PAD) adjX = PAD - minX;
+  if (maxX > W - PAD) adjX = (W - PAD) - maxX;
+  if (minY < PAD) adjY = PAD - minY;
+  if (maxY > H - PAD) adjY = (H - PAD) - maxY;
+
+  shifted = shifted.map((p) => ({ x: p.x + adjX, y: p.y + adjY }));
+  return shifted.map((p) => ({ x: snap(p.x), y: snap(p.y) }));
+}
+
+function setMode(nextMode) {
+  mode = nextMode;
+  document.body.classList.toggle("quizMode", mode === "quiz");
+
+  const inQuiz = mode === "quiz";
+  quizPanel.hidden = !inQuiz;
+  resetBtn.disabled = inQuiz;
+  quizBtn.textContent = inQuiz ? "Quiz (running)" : "Quiz";
+
+  quizFeedbackEl.textContent = "";
+  quizAnswerEl.value = "";
+  quizAnswerEl.disabled = false;
+  quizSubmitBtn.disabled = false;
+  quizNextBtn.disabled = false;
+  quizProgressEl.textContent = "";
+  quizQuestionEl.textContent = "";
+  selected = null;
+  updateUI();
+}
+
+function triangleFromSides(a, b, c) {
+  // a=BC, b=AC, c=AB
+  const A = { x: 0, y: 0 };
+  const B = { x: c, y: 0 };
+  const x = (b * b + c * c - a * a) / (2 * c);
+  const y2 = b * b - x * x;
+  const y = Math.sqrt(Math.max(0, y2));
+  const C = { x, y: -y };
+  return [A, B, C];
+}
+
+function newQuizQuestion() {
+  const pxPerCm = 45;
+  const triples = [
+    { x: 3, y: 4, z: 5 },
+    { x: 6, y: 8, z: 10 },
+  ];
+
+  const type = choice(["angle", "pythagoras", "area", "perimeter"]);
+
+  quiz.labels = null;
+  quiz.rightAngleAt = null;
+  quiz.knownAngles = null;
+  quiz.checked = false;
+
+  if (type === "angle") {
+    let A, B, C;
+    for (let tries = 0; tries < 200; tries++) {
+      A = randInt(30, 120);
+      B = randInt(30, 120);
+      C = 180 - A - B;
+      if (C >= 30 && C <= 120) break;
+    }
+
+    const angles = [A, B, C];
+    const missing = randInt(0, 2);
+    const given = [0, 1, 2].filter((i) => i !== missing);
+
+    const a = 8;
+    const b = (a * Math.sin((B * Math.PI) / 180)) / Math.sin((A * Math.PI) / 180);
+    const c = (a * Math.sin((C * Math.PI) / 180)) / Math.sin((A * Math.PI) / 180);
+
+    const raw = triangleFromSides(a, b, c).map((p) => ({ x: p.x * pxPerCm, y: p.y * pxPerCm }));
+    vertices = centerVertices(raw);
+
+    quiz.knownAngles = given.map((i) => ({ vertex: i, value: angles[i] }));
+
+    quiz.question = `Angles are ${angles[given[0]]}° and ${angles[given[1]]}°. What is the missing angle?`;
+    quiz.answer = angles[missing];
+    quiz.unit = "°";
+    return;
+  }
+
+  const t = choice(triples);
+  // Right triangle with right angle at vertex 0 (legs on axes)
+  const raw = [
+    { x: 0, y: 0 },
+    { x: t.x * pxPerCm, y: 0 },
+    { x: 0, y: -t.y * pxPerCm },
+  ];
+  vertices = centerVertices(raw);
+
+  quiz.rightAngleAt = 0;
+  quiz.knownAngles = [{ vertex: 0, value: 90 }];
+
+  if (type === "pythagoras") {
+    quiz.labels = [
+      { i: 0, j: 1, text: `${t.x} cm` },
+      { i: 0, j: 2, text: `${t.y} cm` },
+    ];
+    quiz.question = `Pythagoras: legs are ${t.x} cm and ${t.y} cm. What is the hypotenuse?`;
+    quiz.answer = t.z;
+    quiz.unit = "cm";
+  } else if (type === "area") {
+    quiz.labels = [
+      { i: 0, j: 1, text: `${t.x} cm` },
+      { i: 0, j: 2, text: `${t.y} cm` },
+    ];
+    quiz.question = `Right-triangle area: legs are ${t.x} cm and ${t.y} cm. What is the area?`;
+    quiz.answer = (t.x * t.y) / 2;
+    quiz.unit = "cm²";
+  } else {
+    quiz.labels = [
+      { i: 0, j: 1, text: `${t.x} cm` },
+      { i: 0, j: 2, text: `${t.y} cm` },
+      { i: 1, j: 2, text: `${t.z} cm` },
+    ];
+    quiz.question = `Right-triangle perimeter: sides are ${t.x} cm, ${t.y} cm, ${t.z} cm. What is the perimeter?`;
+    quiz.answer = t.x + t.y + t.z;
+    quiz.unit = "cm";
+  }
+}
+
+function drawQuizOverlay() {
+  if (quiz.rightAngleAt !== null) {
+    const v = vertices[quiz.rightAngleAt];
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(v.x + 0, v.y - 16);
+    ctx.lineTo(v.x + 16, v.y - 16);
+    ctx.lineTo(v.x + 16, v.y - 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const centroid = {
+    x: (vertices[0].x + vertices[1].x + vertices[2].x) / 3,
+    y: (vertices[0].y + vertices[1].y + vertices[2].y) / 3,
+  };
+
+  if (quiz.knownAngles) {
+    ctx.save();
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.font = "14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (const ka of quiz.knownAngles) {
+      const v = vertices[ka.vertex];
+      const dx = centroid.x - v.x;
+      const dy = centroid.y - v.y;
+      const d = Math.hypot(dx, dy) || 1;
+      const px = v.x + (dx / d) * 26;
+      const py = v.y + (dy / d) * 26;
+      ctx.fillText(`${ka.value}°`, px, py);
+    }
+
+    ctx.restore();
+  }
+
+  if (quiz.labels) {
+    ctx.save();
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.font = "14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (const lab of quiz.labels) {
+      const p = vertices[lab.i];
+      const q = vertices[lab.j];
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      ctx.fillText(lab.text, mx, my);
+    }
+
+    ctx.restore();
+  }
+}
+
+function startQuiz() {
+  setMode("quiz");
+  quiz.qNo = 0;
+  quiz.correct = 0;
+  nextQuizQuestion();
+}
+
+function exitQuiz() {
+  setMode("play");
+  quiz.question = null;
+  quiz.answer = null;
+  quiz.unit = "";
+  quiz.labels = null;
+  quiz.rightAngleAt = null;
+  quiz.knownAngles = null;
+  quiz.qNo = 0;
+  quiz.correct = 0;
+  quiz.checked = false;
+  quizQuestionEl.textContent = "";
+  quizProgressEl.textContent = "";
+  resetTriangle();
+}
+
+function checkQuizAnswer() {
+  if (!Number.isFinite(quiz.answer)) return;
+  if (quiz.checked) return;
+
+  const user = Number(quizAnswerEl.value);
+  if (!Number.isFinite(user)) {
+    quizFeedbackEl.textContent = "Enter a number.";
+    return;
+  }
+
+  const ok = Math.abs(user - quiz.answer) < 1e-9;
+  quiz.checked = true;
+  if (ok) quiz.correct += 1;
+
+  quizFeedbackEl.textContent = ok
+    ? `Correct! (${quiz.answer}${quiz.unit})`
+    : `Not quite. Correct answer: ${quiz.answer}${quiz.unit}.`;
+}
+
+function finishQuiz() {
+  quizProgressEl.textContent = `Completed (score: ${quiz.correct}/${quiz.total})`;
+  quizQuestionEl.textContent = "Quiz complete! Press Exit quiz to return.";
+  quizFeedbackEl.textContent = "";
+  quizAnswerEl.value = "";
+  quizAnswerEl.disabled = true;
+  quizSubmitBtn.disabled = true;
+  quizNextBtn.disabled = true;
+  quiz.labels = null;
+  quiz.rightAngleAt = null;
+  quiz.knownAngles = null;
+  updateUI();
+}
+
+function nextQuizQuestion() {
+  if (quiz.qNo >= quiz.total) {
+    finishQuiz();
+    return;
+  }
+
+  quiz.qNo += 1;
+  quizProgressEl.textContent = `Question ${quiz.qNo} / ${quiz.total}`;
+
+  quizFeedbackEl.textContent = "";
+  quizAnswerEl.value = "";
+
+  newQuizQuestion();
+  updateUI();
+  quizQuestionEl.textContent = quiz.question;
+  quizAnswerEl.focus();
+}
+
 presetBtns.forEach((btn) => {
-  btn.addEventListener("click", () => setPreset(btn.dataset.preset));
+  btn.addEventListener("click", () => {
+    if (mode === "quiz") return;
+    setPreset(btn.dataset.preset);
+  });
 });
 
 resetBtn.addEventListener("click", resetTriangle);
+
+quizBtn.addEventListener("click", () => {
+  if (mode === "quiz") return;
+  startQuiz();
+});
+
+quizExitBtn.addEventListener("click", exitQuiz);
+quizNextBtn.addEventListener("click", nextQuizQuestion);
+quizSubmitBtn.addEventListener("click", checkQuizAnswer);
+quizAnswerEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") checkQuizAnswer();
+});
+
 resetTriangle();
 requestAnimationFrame(loop);
