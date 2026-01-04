@@ -1,22 +1,22 @@
 import { firebaseConfig } from "./firebase-config.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  serverTimestamp,
-  runTransaction,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// Firebase is loaded lazily so the UI (tabs) still works even if the CDN is blocked
+// or config is missing; errors are shown in the banner.
+let initializeApp;
+let getFirestore;
+let collection;
+let doc;
+let getDoc;
+let getDocs;
+let setDoc;
+let deleteDoc;
+let query;
+let where;
+let orderBy;
+let limit;
+let startAfter;
+let serverTimestamp;
+let runTransaction;
 
 const $ = (id) => document.getElementById(id);
 
@@ -340,6 +340,34 @@ async function bootstrap() {
 
   if (!isConfigReady()) {
     showBanner("Firebase is not configured yet. Open the Setup tab and edit firebase-config.js.", "error");
+    setActiveTab("settings");
+    return;
+  }
+
+  try {
+    ({ initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"));
+    const fs = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    ({
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      getDocs,
+      setDoc,
+      deleteDoc,
+      query,
+      where,
+      orderBy,
+      limit,
+      startAfter,
+      serverTimestamp,
+      runTransaction,
+    } = fs);
+  } catch (err) {
+    showBanner(
+      "Could not load Firebase libraries. If you use an ad-blocker or restricted network, allow https://www.gstatic.com/ and reload.",
+      "error",
+    );
     setActiveTab("settings");
     return;
   }
