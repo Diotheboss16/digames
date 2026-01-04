@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dio Account</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-icon" src="icon.svg" alt="Dio Account" />
+      <div>
+        <div class="brand-title">Dio Account</div>
+        <div class="brand-subtitle">Points bank</div>
+      </div>
+    </div>
+
+    <div class="balance" aria-live="polite">
+      <div class="balance-label">Balance</div>
+      <div class="balance-value"><span id="balancePoints">—</span> <span class="balance-unit">pts</span></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab is-active" data-view="earn">Earn</button>
+      <button class="tab" data-view="redeem">Redeem</button>
+      <button class="tab" data-view="history">History</button>
+      <button class="tab" data-view="tasks">Tasks</button>
+      <button class="tab" data-view="awards">Awards</button>
+      <button class="tab" data-view="settings">Setup</button>
+    </nav>
+
+    <section class="panel" id="banner" hidden></section>
+
+    <section class="panel" id="view-earn">
+      <h2>Earn points</h2>
+      <form id="earnForm" class="card">
+        <label>
+          Task
+          <select id="earnTask"></select>
+        </label>
+        <label>
+          Points
+          <input id="earnPoints" type="number" min="0" step="1" required />
+        </label>
+        <label>
+          Notes (optional)
+          <input id="earnNote" type="text" placeholder="e.g. Great focus today" />
+        </label>
+        <button class="btn btn-good" type="submit">+ Add points</button>
+      </form>
+    </section>
+
+    <section class="panel" id="view-redeem" hidden>
+      <h2>Redeem points</h2>
+      <form id="redeemForm" class="card">
+        <label>
+          Award
+          <select id="redeemAward"></select>
+        </label>
+        <label>
+          Cost
+          <input id="redeemCost" type="number" min="0" step="1" required />
+        </label>
+        <label>
+          Notes (optional)
+          <input id="redeemNote" type="text" placeholder="e.g. 30 mins iPad" />
+        </label>
+        <button class="btn btn-bad" type="submit">− Spend points</button>
+      </form>
+    </section>
+
+    <section class="panel" id="view-history" hidden>
+      <div class="row">
+        <h2>History</h2>
+        <label class="toggle">
+          <input type="checkbox" id="historyLast30" checked />
+          <span>Last 30 days</span>
+        </label>
+      </div>
+
+      <div class="card" id="historyList" aria-live="polite"></div>
+      <div class="row row-end">
+        <button class="btn" id="historyLoadMore" type="button">Load more</button>
+      </div>
+    </section>
+
+    <section class="panel" id="view-tasks" hidden>
+      <div class="row">
+        <h2>Tasks</h2>
+      </div>
+      <form id="taskForm" class="card">
+        <label>
+          Task name
+          <input id="taskName" type="text" required />
+        </label>
+        <label>
+          Points
+          <input id="taskPoints" type="number" min="0" step="1" required />
+        </label>
+        <button class="btn" type="submit">Add task</button>
+      </form>
+      <div class="card" id="taskList"></div>
+    </section>
+
+    <section class="panel" id="view-awards" hidden>
+      <div class="row">
+        <h2>Awards</h2>
+      </div>
+      <form id="awardForm" class="card">
+        <label>
+          Award name
+          <input id="awardName" type="text" required />
+        </label>
+        <label>
+          Cost
+          <input id="awardCost" type="number" min="0" step="1" required />
+        </label>
+        <button class="btn" type="submit">Add award</button>
+      </form>
+      <div class="card" id="awardList"></div>
+    </section>
+
+    <section class="panel" id="view-settings" hidden>
+      <h2>Setup</h2>
+      <div class="card">
+        <p>
+          This app uses Firebase (Firestore). Edit <code>firebase-config.js</code> and paste your Firebase web app config.
+        </p>
+        <p class="small">
+          Hosting URL: <code>https://diotheboss16.github.io/digames/_DioAccount/</code>
+          <br />
+          Note: with <strong>no sign-in</strong>, you must set Firestore rules to allow your family to read/write.
+          If you later enable Auth, add <code>diotheboss16.github.io</code> to Firebase Authorized domains.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
