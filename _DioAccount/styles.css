@@ -127,6 +127,7 @@ input,select{
   padding:12px 14px;
   border:1px solid rgba(255,255,255,.16);
   background:rgba(0,0,0,.18);
+  white-space:pre-wrap;
 }
 
 .small{font-size:12px; color:var(--muted); line-height:1.35}

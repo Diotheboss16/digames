@@ -140,6 +140,51 @@
     </section>
   </main>
 
+  <script>
+    (function () {
+      const banner = document.getElementById('banner');
+      const views = {
+        earn: document.getElementById('view-earn'),
+        redeem: document.getElementById('view-redeem'),
+        history: document.getElementById('view-history'),
+        tasks: document.getElementById('view-tasks'),
+        awards: document.getElementById('view-awards'),
+        settings: document.getElementById('view-settings'),
+      };
+
+      function showError(msg) {
+        if (!banner) return;
+        banner.hidden = false;
+        banner.textContent = msg;
+        banner.style.borderColor = 'rgba(251,113,133,.45)';
+      }
+
+      function setActiveTab(view) {
+        document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-active', b.dataset.view === view));
+        Object.entries(views).forEach(([k, el]) => { if (el) el.hidden = k !== view; });
+      }
+
+      // Basic tabs always work, even if module scripts fail.
+      document.querySelectorAll('.tab').forEach((b) => {
+        b.addEventListener('click', () => setActiveTab(b.dataset.view));
+      });
+
+      window.addEventListener('error', (e) => {
+        const target = e.target;
+        const resource = target && (target.src || target.href);
+        if (resource) {
+          showError('Resource failed to load:\n' + resource);
+          return;
+        }
+        showError('Error:\n' + (e.error?.stack || e.message || String(e)));
+      }, true);
+
+      window.addEventListener('unhandledrejection', (e) => {
+        showError('Unhandled promise rejection:\n' + (e.reason?.stack || e.reason || String(e)));
+      });
+    })();
+  </script>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
