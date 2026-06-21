@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Fruit Factory">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ee7b7"/>
+      <stop offset="1" stop-color="#ffb86e"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="40" y="40" width="432" height="432" rx="96" fill="url(#bg)"/>
+
+  <!-- input fruits -->
+  <circle cx="186" cy="150" r="40" fill="#ef4444"/>
+  <path d="M186 112 q12 -22 30 -16" stroke="#15803d" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="326" cy="150" r="40" fill="#f59e0b"/>
+  <circle cx="326" cy="122" r="6" fill="#15803d"/>
+
+  <!-- funnels into the machine -->
+  <path d="M186 196 L230 250" stroke="#0b1220" stroke-width="12" stroke-linecap="round" opacity=".45"/>
+  <path d="M326 196 L282 250" stroke="#0b1220" stroke-width="12" stroke-linecap="round" opacity=".45"/>
+
+  <!-- machine -->
+  <rect x="150" y="250" width="212" height="120" rx="26" fill="#0b1220" fill-opacity="0.88"/>
+  <text x="256" y="334" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="92" font-weight="800" fill="#6ee7b7">&#8746;</text>
+
+  <!-- output basket -->
+  <path d="M210 392 h92 l-12 52 a8 8 0 0 1 -8 6 h-44 a8 8 0 0 1 -8 -6 z" fill="#0b1220" fill-opacity="0.88"/>
+  <circle cx="240" cy="412" r="13" fill="#ef4444"/>
+  <circle cx="272" cy="412" r="13" fill="#f59e0b"/>
+</svg>

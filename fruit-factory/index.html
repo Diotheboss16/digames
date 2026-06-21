@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fruit Factory</title>
+<style>
+  :root{
+    --bg:#0f1220; --panel:#1a1f36; --panel2:#222a4a; --ink:#e8ecff;
+    --muted:#9aa3c7; --accent:#6ee7b7; --gold:#ffd76e; --line:#33406e;
+    --slot:#141a30; --mint:#6ee7b7; --amber:#ffb86e; --wire:#6ee7b7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1200px 800px at 70% -10%, #1b2347, var(--bg));
+    color:var(--ink); font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    overflow:hidden;
+  }
+  #board{position:relative; height:100vh; width:100vw; display:flex; flex-direction:column}
+  header{
+    display:flex; align-items:center; gap:18px; padding:12px 20px;
+    border-bottom:1px solid var(--line); background:rgba(20,26,48,.6); backdrop-filter:blur(6px); z-index:80;
+  }
+  header h1{font-size:18px; margin:0; letter-spacing:.5px}
+  header h1 .sub{color:var(--muted); font-weight:400; font-size:13px; margin-left:8px}
+  .grow{flex:1}
+  .pill{background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:6px 12px; color:var(--muted)}
+  button{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:10px; padding:8px 14px; cursor:pointer; font-size:14px;
+  }
+  button:hover{border-color:var(--accent)}
+  button:disabled{opacity:.4; cursor:default}
+  .goal{display:flex; align-items:center; gap:10px; background:rgba(255,215,110,.08);
+    border:1px solid rgba(255,215,110,.4); border-radius:12px; padding:6px 12px}
+  .goal .lbl{color:var(--gold); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:1px}
+
+  #stage{flex:1; position:relative; overflow:hidden}
+
+  /* toolbox strip */
+  #toolbox{position:absolute; top:0; left:0; right:0; z-index:40;
+    display:flex; align-items:center; gap:10px; padding:10px 16px;
+    background:linear-gradient(180deg,rgba(16,20,40,.92),rgba(16,20,40,.55));
+    border-bottom:1px solid var(--line);}
+  #toolbox .tlabel{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-right:4px}
+  .chip{position:relative; width:78px; padding:8px 6px 7px; border-radius:12px; cursor:grab;
+    background:var(--panel2); border:1px solid var(--line); text-align:center; user-select:none;
+    transition:transform .05s, border-color .15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip .cop{font-size:22px; color:var(--accent); line-height:1}
+  .chip .cname{font-size:11px; color:var(--ink); margin-top:3px}
+  .chip.locked{cursor:not-allowed; opacity:.45; filter:grayscale(.6)}
+  .chip.locked:hover{border-color:var(--line)}
+  .chip .lock{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:1px; background:rgba(13,17,36,.55); border-radius:12px; font-size:13px}
+  .chip .lock small{font-size:9px; color:var(--gold); letter-spacing:.5px}
+  .chip.dragging{transform:scale(1.08); box-shadow:0 16px 36px rgba(0,0,0,.5); z-index:999; cursor:grabbing}
+
+  /* wire layer */
+  #wires{position:absolute; inset:0; z-index:44; pointer-events:none; overflow:visible}
+  .wirepath{fill:none; stroke:var(--wire); stroke-width:3; opacity:.85}
+  .wirehit{fill:none; stroke:transparent; stroke-width:18; pointer-events:stroke; cursor:pointer}
+  .wire.temp .wirepath{stroke-dasharray:7 5; opacity:.7}
+
+  /* placed machines — no z-index here, so an open popover can rise above the basket layer */
+  #machines{position:absolute; inset:0; pointer-events:none}
+  .machine.popped{z-index:70}
+  .machine{
+    position:absolute; pointer-events:auto;
+    background:linear-gradient(180deg,var(--panel),#161c33);
+    border:1px solid var(--line); border-radius:18px; padding:12px 16px 16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .machine .name{font-weight:700; margin-bottom:2px; display:flex; align-items:center; gap:8px; cursor:grab}
+  .machine .name.grabbing{cursor:grabbing}
+  .machine .op{font-size:22px; color:var(--accent); width:28px; text-align:center}
+  .machine .tagline{color:var(--muted); font-size:12px; margin-bottom:12px; max-width:300px}
+  .machine .ctrl{margin-left:auto; display:flex; gap:6px}
+  .iconbtn{width:24px; height:24px; padding:0; border-radius:50%; font-size:13px; line-height:1; color:var(--muted)}
+  .iconbtn:hover{color:var(--ink); border-color:var(--accent)}
+  .row{display:flex; align-items:center; gap:12px}
+  .slot{
+    width:104px; height:96px; border-radius:14px; background:var(--slot);
+    border:2px dashed var(--line); display:flex; align-items:center; justify-content:center;
+    transition:border-color .15s, background .15s; position:relative;
+  }
+  .slot.in{border-color:var(--accent)}
+  .slot.out{border-style:solid; border-color:rgba(110,231,183,.5); background:#10261f}
+  .slot .tag{position:absolute; top:-9px; left:8px; font-size:10px; color:var(--muted);
+    background:var(--panel); padding:0 6px; border-radius:6px; letter-spacing:1px}
+  .glyph{font-size:24px; color:var(--muted); width:28px; text-align:center}
+
+  /* connection ports */
+  .port{position:absolute; width:30px; height:30px; border-radius:50%; background:transparent;
+    z-index:6; cursor:crosshair}
+  .port::after{content:''; position:absolute; inset:6px; border-radius:50%;
+    background:#1d2347; border:2px solid var(--accent); transition:box-shadow .12s, background .12s, inset .1s}
+  .port:hover::after{inset:4px}
+  .port.outp{right:-15px; top:50%; transform:translateY(-50%)}
+  .port.inp{left:-15px; top:50%; transform:translateY(-50%)}
+  .port.outp::after{background:var(--accent)}
+  .port.hot::after{background:var(--accent); box-shadow:0 0 0 5px rgba(110,231,183,.4)}
+
+  /* equality face */
+  .face{width:78px; height:96px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    font-size:40px; font-weight:800; background:var(--slot); border:2px solid var(--line); color:var(--muted)}
+  .face.pass{background:#10261f; border-color:var(--accent); color:var(--accent)}
+  .face.fail{background:#2a1620; border-color:#ff9a9a; color:#ff9a9a}
+  #shakeBtn{background:#2d2350; border-color:var(--gold)}
+  #shakeBtn:hover{border-color:var(--accent)}
+
+  /* ? popover */
+  .pop{position:absolute; top:46px; right:14px; width:288px; z-index:60;
+    background:#0d1124; border:1px solid var(--accent); border-radius:14px; padding:14px 16px;
+    box-shadow:0 16px 40px rgba(0,0,0,.5); display:none}
+  .pop.show{display:block}
+  .pop h4{margin:0 0 6px; font-size:14px}
+  .pop p{margin:0 0 10px; color:var(--ink); font-size:13px}
+  .pop .secret{border-top:1px dashed var(--line); padding-top:9px; color:var(--muted); font-size:12px}
+  .pop .secret b{color:var(--gold)}
+  .pop .close{position:absolute; top:8px; right:10px; cursor:pointer; color:var(--muted)}
+
+  #goalzone{
+    position:absolute; right:30px; bottom:30px; width:200px; pointer-events:auto; z-index:20;
+    background:rgba(255,215,110,.06); border:2px dashed rgba(255,215,110,.5);
+    border-radius:18px; padding:14px; text-align:center;
+  }
+  #goalzone.in{background:rgba(255,215,110,.16)}
+  #goalzone .lbl{color:var(--gold); font-size:12px; text-transform:uppercase; letter-spacing:1px}
+  #goalzone .hint{color:var(--muted); font-size:11px; margin-top:6px}
+  #goalzone .port.inp::after{border-color:var(--gold)}
+  #goalPreview{margin-top:8px; display:flex; justify-content:center; min-height:0}
+
+  #palette{
+    border-top:1px solid var(--line); background:rgba(20,26,48,.6); padding:12px 20px;
+    display:flex; align-items:center; gap:16px; min-height:120px; z-index:80;
+  }
+  #palette .plabel{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:1px; writing-mode:vertical-rl; transform:rotate(180deg)}
+  #paletteItems{display:flex; gap:16px; flex-wrap:wrap}
+
+  /* basket token */
+  .bag{
+    width:96px; min-height:88px; border-radius:16px; cursor:grab; user-select:none;
+    background:linear-gradient(180deg,#2a3360,#1d2347);
+    border:2px solid #44518c; box-shadow:0 6px 16px rgba(0,0,0,.35);
+    display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:3px;
+    padding:8px; position:relative; transition:transform .05s;
+  }
+  .bag.set{border-color:rgba(110,231,183,.7)}
+  .bag.multi{border-color:rgba(255,184,110,.8);
+    box-shadow:0 6px 16px rgba(0,0,0,.35), 5px 5px 0 -1px #20284a, 9px 9px 0 -2px #1a2142}
+  .bag.empty{background:repeating-linear-gradient(45deg,#222a4a,#222a4a 8px,#1d2347 8px,#1d2347 16px)}
+  .bag .e{font-size:20px; line-height:1; position:relative}
+  .bag .cnt{font-size:11px; color:var(--amber); align-self:flex-end; margin-left:-2px; font-weight:700}
+  .bag .emptytag{color:var(--muted); font-size:12px}
+  .bag .knot{position:absolute; top:-7px; left:50%; transform:translateX(-50%);
+    width:26px; height:10px; background:#44518c; border-radius:6px 6px 0 0}
+  .bag.preview{position:absolute; transform:scale(.8); pointer-events:none; box-shadow:none; opacity:.95}
+  .bag.gpreview{position:static; transform:scale(.78); pointer-events:none}
+  .tokenLayer{position:absolute; inset:0; pointer-events:none; z-index:50}
+  .tokenLayer .bag{position:absolute; pointer-events:auto}
+  .bag.dragging{cursor:grabbing; transform:scale(1.06); box-shadow:0 18px 40px rgba(0,0,0,.5); z-index:999}
+
+  .toast{position:absolute; left:50%; top:70px; transform:translateX(-50%);
+    background:var(--accent); color:#06281c; font-weight:700; padding:12px 22px;
+    border-radius:12px; opacity:0; transition:opacity .3s, transform .3s; z-index:2000}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(6px)}
+
+  .help{position:absolute; left:30px; bottom:30px; max-width:300px; color:var(--muted);
+    font-size:12px; background:rgba(20,26,48,.7); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; pointer-events:none; z-index:20}
+  .help b{color:var(--ink)}
+
+  /* --- juice --- */
+  #bgfruit{position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden}
+  #bgfruit span{position:absolute; bottom:-70px; opacity:.06; animation:rise linear infinite; will-change:transform}
+  @keyframes rise{from{transform:translateY(0) rotate(0)} to{transform:translateY(-118vh) rotate(360deg)}}
+  .confetti{position:absolute; top:0; left:0; font-size:24px; pointer-events:none; z-index:1500; will-change:transform,opacity}
+  @keyframes popk{0%{transform:scale(.55)} 60%{transform:scale(1.14)} 100%{transform:scale(1)}}
+  .bag.pop{animation:popk .24s ease-out}
+  .bag:hover:not(.dragging):not(.preview):not(.gpreview){transform:translateY(-3px)}
+  button{transition:transform .06s, border-color .15s}
+  button:active{transform:scale(.93)}
+  .chip:hover:not(.locked){transform:translateY(-3px)}
+  #muteBtn,#musicBtn{padding:8px 10px}
+  .machine{animation:popk .18s ease-out}
+</style>
+</head>
+<body>
+<div id="board">
+  <header>
+    <h1>Fruit Factory <span class="sub">build a factory, fill the basket</span></h1>
+    <div class="pill" id="levelPill">Level 1</div>
+    <div class="grow"></div>
+    <div class="goal"><span class="lbl">Want</span><div id="goalBag"></div></div>
+    <button id="muteBtn" title="Sound on/off">🔊</button>
+    <button id="musicBtn" title="Music on/off">🎵</button>
+    <button id="shakeBtn" style="display:none">🎲 Shake</button>
+    <button id="resetBtn">Reset</button>
+    <button id="nextBtn" disabled>Next ▸</button>
+  </header>
+
+  <div id="stage">
+    <div id="bgfruit"></div>
+    <div id="toolbox"><span class="tlabel">Toolbox</span></div>
+    <svg id="wires"></svg>
+    <div id="machines"></div>
+    <div id="goalzone">
+      <div class="lbl">Delivery</div>
+      <div class="hint">drop a basket — or wire one in</div>
+      <div id="goalPreview"></div>
+    </div>
+    <div class="help" id="help"></div>
+    <div class="tokenLayer" id="tokenLayer"></div>
+  </div>
+
+  <div id="palette">
+    <div class="plabel">Supply</div>
+    <div id="paletteItems"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ---------- fruit vocabulary ----------
+const ITEMS = { apple:'🍎', orange:'🍊', banana:'🍌', grape:'🍇', cherry:'🍒' };
+const ORDER = ['apple','orange','banana','grape','cherry'];
+
+const bag = (obj={}) => { const b={}; for(const k of ORDER) b[k]=obj[k]||0; return b; };
+const bagEq = (a,b) => ORDER.every(k => a[k]===b[k]);
+const bagEmpty = b => ORDER.every(k => b[k]===0);
+const isSet = b => ORDER.every(k => b[k]<=1);
+
+// ---------- machines ----------
+const OPS = {
+  union: { name:'Merge', op:'∪', arity:2, unlock:1,
+    tagline:'Keep the bigger stack of each fruit.',
+    fruit:'Pile both baskets together and, for every fruit, keep the taller pile. Three apples next to two apples? You walk away with three.',
+    secret:'This is <b>set union (∪)</b>. On plain sets it’s the logical <b>OR</b>: a fruit makes the cut if it’s in either basket. It’s lazy — merge a basket with itself and nothing changes.',
+    fn:(a,b)=>bag(Object.fromEntries(ORDER.map(k=>[k,Math.max(a[k],b[k])]))) },
+
+  sum: { name:'Pour', op:'⊎', arity:2, unlock:3,
+    tagline:'Tip both baskets into one. Nothing left behind.',
+    fruit:'Empty both baskets into a single one. Three apples plus two apples really does make five — every fruit comes along.',
+    secret:'This is <b>multiset sum (⊎)</b>, the counting cousin of Merge. Pour adds the piles; Merge only checks who’s taller. Pour a basket into itself and it doubles.',
+    fn:(a,b)=>bag(Object.fromEntries(ORDER.map(k=>[k,a[k]+b[k]]))) },
+
+  inter: { name:'Common', op:'∩', arity:2, unlock:4,
+    tagline:'Keep only what both baskets can match.',
+    fruit:'Lay the baskets side by side and keep only what each can pair off. Three apples meeting two apples leaves two — the smaller pile sets the limit.',
+    secret:'This is <b>set intersection (∩)</b>, the logical <b>AND</b>: a fruit survives only if it’s in <i>both</i> baskets.',
+    fn:(a,b)=>bag(Object.fromEntries(ORDER.map(k=>[k,Math.min(a[k],b[k])]))) },
+
+  diff: { name:'Remove', op:'∖', arity:2, unlock:5,
+    tagline:'Left basket, minus whatever the right one holds.',
+    fruit:'Take the left basket and pull out as many of each fruit as the right basket is holding. The right basket is just a list of things to discard.',
+    secret:'This is <b>set difference (∖)</b> — “A and <i>not</i> B”. Order matters: left minus right isn’t the same as right minus left.',
+    fn:(a,b)=>bag(Object.fromEntries(ORDER.map(k=>[k,Math.max(0,a[k]-b[k])]))) },
+
+  sdiff: { name:'Odd Ones', op:'△', arity:2, unlock:6,
+    tagline:'Keep the fruit that’s in one basket but not both.',
+    fruit:'Keep only the loners — fruit that shows up in exactly one of the two baskets. Anything both baskets share cancels out.',
+    secret:'This is <b>symmetric difference (△)</b>, the logical <b>XOR</b>: in one or the other, never both.',
+    fn:(a,b)=>bag(Object.fromEntries(ORDER.map(k=>[k,Math.abs(a[k]-b[k])]))) },
+
+  flat: { name:'Tidy', op:'{·}', arity:1, unlock:7,
+    tagline:'Squish a basket down to one of each fruit.',
+    fruit:'A tidy-up machine: however many of each fruit went in, just one of each comes out — a neat sample of what the basket held.',
+    secret:'This turns a multiset into its <b>underlying set</b> (its “support”): forget the counts, keep just which fruits were present. The bridge from multiset-world back down to set-world.',
+    fn:(a)=>bag(Object.fromEntries(ORDER.map(k=>[k,Math.min(1,a[k])]))) },
+
+  copy: { name:'Copy', op:'⋔', arity:1, unlock:11,
+    tagline:'Hand the same basket to as many machines as you like.',
+    fruit:'A splitter: whatever basket goes in comes straight back out, and you can run its output into several machines at once.',
+    secret:'An identity / copy node — the “diagonal”. Fanning one output into many inputs is how a value gets <b>shared</b>. Leave its input <i>empty</i> and it becomes a <b>free variable</b> standing for any basket — the raw material of a ∀ law.',
+    fn:(a)=>bag(a) },
+
+  equal: { name:'Equal?', op:'=', arity:2, unlock:31,
+    tagline:'Green when both baskets match, red when they don’t.',
+    fruit:'Hold two baskets up side by side: green if they’re exactly the same, red if they differ.',
+    secret:'Feed it two sides built from empty <b>Copy</b> variables and hit <b>🎲 Shake</b>: it tries many random baskets. Green for <i>all</i> of them = a universal law (∀); a red one is a <b>counterexample</b>.',
+    fn:(a,b)=>a },
+};
+const TOOLBOX_ORDER = ['union','sum','inter','diff','sdiff','flat','copy','equal'];
+
+// ---------- levels ----------
+const L = [
+  { title:'First merge',
+    supply:[ {apple:3}, {orange:3} ], goal:{apple:3, orange:3},
+    help:'Drag <b>Merge</b> from the Toolbox into the factory. Put a basket in each slot, then drag the green result to <b>Delivery</b>.' },
+  { title:'Taller wins',
+    supply:[ {apple:3, orange:1}, {apple:2, orange:2} ], goal:{apple:3, orange:2},
+    help:'When baskets overlap, <b>Merge</b> keeps the taller pile of each fruit. Tap <b>?</b> on a machine anytime.' },
+  { title:'Pour, don’t merge',
+    supply:[ {apple:3}, {apple:3} ], goal:{apple:6},
+    help:'A new machine joined the Toolbox. You need <b>six</b> apples — one machine keeps piles, the other adds them.' },
+  { title:'Shared fruit',
+    supply:[ {apple:2, orange:2, banana:1}, {orange:2, banana:3} ], goal:{orange:2, banana:1},
+    help:'<b>Common</b> keeps only what both baskets can match, fruit by fruit.' },
+  { title:'Take it away',
+    supply:[ {apple:3, orange:3}, {orange:3} ], goal:{apple:3},
+    help:'<b>Remove</b> subtracts the right basket from the left. Which basket goes where?' },
+  { title:'The loners',
+    supply:[ {apple:2, orange:2, grape:1}, {orange:2, banana:3} ], goal:{apple:2, banana:3, grape:1},
+    help:'<b>Odd Ones</b> keeps fruit found in exactly one basket.' },
+  { title:'Tidy it up',
+    supply:[ {apple:3, orange:2} ], goal:{apple:1, orange:1},
+    help:'The goal is one of each — a neat set. The newest machine can squish a basket down to size.' },
+  { title:'Wire it up',
+    supply:[ {apple:2, orange:2}, {orange:2, banana:2}, {banana:2} ], goal:{apple:2, orange:2},
+    help:'<b>Tip:</b> drag from a machine’s output port <b>●</b> to another’s input port <b>○</b> to wire them — no hand-carrying. Chain two machines to build the goal.' },
+  { title:'A longer recipe',
+    supply:[ {apple:2, orange:2}, {banana:2}, {orange:2} ], goal:{apple:2, banana:2},
+    help:'Two steps. <b>Merge</b> two baskets, then <b>Remove</b> the third from the result. Plan the order!' },
+  { title:'Neaten the pile',
+    supply:[ {apple:3, orange:2}, {orange:2, banana:4} ], goal:{apple:1, orange:1, banana:1},
+    help:'The goal is one of each. Combine the baskets, then <b>Tidy</b> the big pile down to a neat set.' },
+  { title:'Share the load',
+    supply:[ {apple:3, orange:1}, {apple:1, orange:3} ], goal:{apple:2, orange:2},
+    help:'Build <b>🍎🍎🍎🍊🍊🍊</b> once, then use it in <i>two</i> places: Remove the left basket from it, Remove the right basket from it, and Merge the two results. One output can feed <b>many</b> inputs — or drop a <b>Copy ⋔</b> to make the split tidy.' },
+
+  // ---- combinator stretch (levels 12–29): pure operator puzzles, no equality ----
+  { title:'Double up',
+    supply:[ {apple:2, orange:1} ], goal:{apple:4, orange:2},
+    help:'Two of the same basket, <b>Poured</b> together. (Drag two copies from Supply.)' },
+  { title:'Bigger of each',
+    supply:[ {apple:1, orange:4, banana:2}, {apple:4, orange:1, banana:3} ], goal:{apple:4, orange:4, banana:3},
+    help:'One <b>Merge</b> — it keeps the taller pile of every fruit.' },
+  { title:'Common ground',
+    supply:[ {apple:3, orange:3, banana:1}, {apple:1, orange:3, banana:3} ], goal:{apple:1, orange:3, banana:1},
+    help:'What do both baskets share? <b>Common</b> knows.' },
+  { title:'Odd ones out',
+    supply:[ {apple:3, orange:2}, {apple:3, banana:2} ], goal:{orange:2, banana:2},
+    help:'<b>Odd Ones</b> keeps only the fruit that isn’t in both.' },
+  { title:'Surgical removal',
+    supply:[ {apple:5, orange:5, banana:5}, {apple:2, banana:5} ], goal:{apple:3, orange:5},
+    help:'<b>Remove</b> the second basket from the first — some fruit vanishes completely.' },
+  { title:'Merge the trio',
+    supply:[ {apple:3, orange:1}, {orange:3, banana:1}, {banana:3, apple:1} ], goal:{apple:3, orange:3, banana:3},
+    help:'Three baskets, one big pile. Two <b>Merge</b> machines (or two wires).' },
+  { title:'Strip it down',
+    supply:[ {apple:3, orange:2, banana:2}, {orange:2}, {banana:2} ], goal:{apple:3},
+    help:'Peel away two baskets with two <b>Remove</b> machines.' },
+  { title:'Cancel the pairs',
+    supply:[ {apple:2, orange:3, banana:1}, {apple:2, orange:1, banana:1} ], goal:{orange:2},
+    help:'Matching fruit cancels out — only the leftover count survives. (<b>Odd Ones</b>.)' },
+  { title:'Pour and trim',
+    supply:[ {apple:2, orange:1}, {apple:1, orange:2}, {orange:2} ], goal:{apple:3, orange:1},
+    help:'<b>Pour</b> the first two together, then <b>Remove</b> the third.' },
+  { title:'Mix, then match',
+    supply:[ {apple:2, orange:2}, {apple:2, banana:2}, {apple:3, orange:1, banana:1} ], goal:{apple:3, orange:1, banana:1},
+    help:'Pour the first two, then keep only what the third basket also holds.' },
+  { title:'Neat and double',
+    supply:[ {apple:4, orange:2, banana:6} ], goal:{apple:2, orange:2, banana:2},
+    help:'<b>Tidy</b> the messy pile to one of each, then double it with <b>Pour</b>.' },
+  { title:'Keep the core',
+    supply:[ {apple:4, orange:3, banana:2}, {apple:3, orange:3, banana:3}, {apple:2, orange:5, banana:4} ], goal:{apple:2, orange:3, banana:2},
+    help:'Three baskets — keep only what <i>all</i> of them have. Two <b>Common</b> machines.' },
+  { title:'Two from one',
+    supply:[ {apple:3, orange:1}, {apple:1, orange:3} ], goal:{apple:2, orange:2},
+    help:'Merge the baskets, then feed that one result into <i>two</i> machines (fan-out, or a <b>Copy ⋔</b>): keep its Common with each side, then take the Odd Ones.' },
+  { title:'Build the rainbow',
+    supply:[ {apple:2}, {orange:2}, {banana:2}, {grape:2} ], goal:{apple:2, orange:2, banana:2, grape:2},
+    help:'Four single-fruit baskets → one of everything. Chain three <b>Merge</b>s.' },
+  { title:'Layered',
+    supply:[ {apple:3, orange:3}, {orange:3, banana:3}, {apple:2, orange:2, banana:2}, {banana:5} ], goal:{apple:2, orange:2},
+    help:'Three steps: <b>Merge</b> the first two, keep the <b>Common</b> with the third, then <b>Remove</b> the fourth.' },
+  { title:'Extras only',
+    supply:[ {apple:4, orange:2}, {apple:1, orange:2}, {banana:2} ], goal:{apple:3, banana:2},
+    help:'<b>Odd Ones</b> finds the surplus, then <b>Pour</b> in the last basket.' },
+  { title:'Counting house',
+    supply:[ {apple:2, orange:1}, {apple:1, orange:1} ], goal:{apple:5, orange:3},
+    help:'Get exactly <b>🍎×5 🍊×3</b>. <b>Pour</b> is your adding machine — and you can use a basket more than once.' },
+  { title:'The full pipeline',
+    supply:[ {apple:4, orange:2}, {orange:2, banana:4}, {apple:1, banana:1}, {apple:2, orange:2, banana:2} ], goal:{apple:2, orange:2, banana:2},
+    help:'The big one. <b>Merge</b>, then <b>Remove</b>, then <b>Common</b> — four baskets in, one precise basket out.' },
+
+  { title:'Free build',
+    supply:[ {apple:1}, {orange:2}, {banana:1, grape:1}, {grape:2} ], goal:{apple:1, orange:2, banana:1},
+    help:'Every machine unlocked. Drag baskets or lay wires — whatever you like.' },
+
+  { title:'Law lab: A ∪ A = A', law:true, expect:'green', supply:[], goal:null,
+    help:'Drag a <b>Copy ⋔</b> and leave its input empty — it now stands for <i>any</i> basket. Fan its output into <b>both</b> slots of <b>Merge</b>, and into one side of <b>Equal? =</b>. Wire Merge’s output to the other side of Equal?. Then hit <b>🎲 Shake</b>: green = holds for every basket.' },
+
+  { title:'Is Remove fair?', law:true, expect:'red', supply:[], goal:null,
+    help:'Two <b>Copy ⋔</b> variables, A and B. Build <b>A∖B</b> and <b>B∖A</b> with two <b>Remove</b> machines and compare them in <b>Equal?</b>. <b>🎲 Shake</b> to hunt for a basket where they differ — find one and you’ve shown ∖ isn’t commutative.' },
+
+  { title:'Law lab: De Morgan', law:true, expect:'green', supply:[], goal:null,
+    help:'The big one. Three <b>Copy</b> variables A, B, C. Build <b>C∖(A∪B)</b> on one side and <b>(C∖A)∩(C∖B)</b> on the other, then <b>Equal?</b> + <b>🎲 Shake</b>. (Uses Merge, Remove, Common.)' },
+];
+
+// ---------- DOM helpers ----------
+const $ = sel => document.querySelector(sel);
+const stage=$('#stage'), tokenLayer=$('#tokenLayer'), machinesEl=$('#machines'),
+      toolbox=$('#toolbox'), wiresSvg=$('#wires'), goalzone=$('#goalzone'), goalPrev=$('#goalPreview');
+const svgEl = t => document.createElementNS('http://www.w3.org/2000/svg', t);
+
+// ---------- procedural audio (Web Audio, no asset files) ----------
+const Sound = (()=>{
+  let ctx, master, sfxG, musG, musFilter, muted=false, musicOn=true, started=false;
+  function ensure(){
+    if(ctx) return;
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    ctx=new AC();
+    master=ctx.createGain(); master.gain.value=0.85; master.connect(ctx.destination);
+    sfxG=ctx.createGain(); sfxG.gain.value=0.55; sfxG.connect(master);
+    musFilter=ctx.createBiquadFilter(); musFilter.type='lowpass'; musFilter.frequency.value=1500;
+    musG=ctx.createGain(); musG.gain.value=0; musFilter.connect(musG); musG.connect(master);
+  }
+  function note(freq,start,dur,type,peak,dest){
+    if(!ctx) return;
+    const o=ctx.createOscillator(); o.type=type; o.frequency.setValueAtTime(freq,start);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0.0001,start);
+    g.gain.exponentialRampToValueAtTime(peak,start+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,start+dur);
+    o.connect(g); g.connect(dest||sfxG); o.start(start); o.stop(start+dur+0.03);
+  }
+  function play(name){
+    if(muted||!ctx) return; const t=ctx.currentTime;
+    switch(name){
+      case 'pickup': note(620,t,0.09,'sine',0.16); note(880,t+0.03,0.07,'sine',0.10); break;
+      case 'drop': note(300,t,0.12,'triangle',0.26); note(170,t+0.04,0.10,'triangle',0.18); break;
+      case 'connect': note(540,t,0.07,'sine',0.18); note(820,t+0.05,0.10,'sine',0.16); break;
+      case 'disconnect': note(420,t,0.09,'sine',0.16); note(250,t+0.06,0.12,'sine',0.12); break;
+      case 'place': note(300,t,0.05,'square',0.12); note(540,t+0.04,0.10,'triangle',0.16); break;
+      case 'remove': note(330,t,0.16,'sawtooth',0.14); note(160,t+0.05,0.16,'sawtooth',0.12); break;
+      case 'error': note(165,t,0.10,'square',0.16); note(150,t+0.13,0.12,'square',0.16); break;
+      case 'click': note(720,t,0.05,'sine',0.12); break;
+      case 'shake': for(let i=0;i<8;i++) note(220+Math.random()*340,t+i*0.045,0.05,'square',0.10); break;
+      case 'win': [523,659,784,1047].forEach((f,i)=>note(f,t+i*0.09,0.26,'triangle',0.22)); break;
+      case 'lawpass': [523,659,784,1047,1319].forEach((f,i)=>note(f,t+i*0.08,0.30,'triangle',0.22)); note(262,t,0.7,'sine',0.14); break;
+      case 'lawfail': [440,392,330,247].forEach((f,i)=>note(f,t+i*0.10,0.22,'sawtooth',0.16)); break;
+    }
+  }
+  function setMusVol(){ if(!musG) return; musG.gain.cancelScheduledValues(ctx.currentTime);
+    musG.gain.linearRampToValueAtTime((musicOn&&!muted)?0.12:0, ctx.currentTime+0.5); }
+  function kick(t){ const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(135,t); o.frequency.exponentialRampToValueAtTime(45,t+0.12);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.5,t+0.005); g.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+    o.connect(g); g.connect(musG); o.start(t); o.stop(t+0.2); }
+  function hat(t){ const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='square'; o.frequency.setValueAtTime(7200,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.05,t+0.003); g.gain.exponentialRampToValueAtTime(0.0001,t+0.04);
+    o.connect(g); g.connect(musG); o.start(t); o.stop(t+0.05); }
+  function startMusic(){
+    if(started||!ctx) return; started=true; setMusVol();
+    if(musFilter) musFilter.frequency.value=2600;            // brighter for liveliness
+    const six=60/124/4;                                      // sixteenth-note seconds @124 BPM
+    const prog=[                                             // I–V–vi–IV groove, 1 bar each
+      {bass:65.41,  arp:[261.63,329.63,392.00]},             // C
+      {bass:98.00,  arp:[196.00,246.94,293.66]},             // G
+      {bass:110.00, arp:[220.00,261.63,329.63]},             // Am
+      {bass:87.31,  arp:[174.61,220.00,261.63]},             // F
+    ];
+    const lead=[392.00,440.00,523.25,587.33,659.25,523.25,440.00,329.63];
+    let step=0;
+    (function loop(){
+      if(!ctx) return;
+      const t=ctx.currentTime+0.05, bar=Math.floor(step/16)%4, s=step%16, ch=prog[bar];
+      if(s%4===0) note(ch.bass,   t, six*3.2,'triangle',0.30,musFilter);   // bass on the beat
+      if(s%4===2) note(ch.bass*2, t, six*1.4,'sine',    0.12,musFilter);   // octave bounce off-beat
+      if(s%2===0) note(ch.arp[(s/2)%3], t, six*1.6,'square',0.07,musFilter); // bubbly arpeggio
+      if(s===0||s===8) kick(t);                                            // kick on beats 1 & 3
+      if(s%4===2) hat(t);                                                  // off-beat hats
+      if((s===4||s===10||s===14)&&Math.random()<0.72)
+        note(lead[Math.floor(Math.random()*lead.length)], t, six*2,'triangle',0.13,musFilter); // hopping lead
+      step++; setTimeout(loop, six*1000);
+    })();
+  }
+  return {
+    unlock(){ ensure(); if(ctx&&ctx.state==='suspended') ctx.resume(); startMusic(); },
+    play,
+    toggleMute(){ muted=!muted; setMusVol(); return muted; },
+    toggleMusic(){ musicOn=!musicOn; setMusVol(); return musicOn; },
+  };
+})();
+
+// ---------- visual juice ----------
+let bulkEval=false;
+function burst(){
+  const cx=stage.clientWidth/2, cy=stage.clientHeight/2.4;
+  const emo=['🍎','🍊','🍌','🍇','🍒','✨','⭐','🎉'];
+  for(let i=0;i<30;i++){
+    const s=document.createElement('div'); s.className='confetti';
+    s.textContent=emo[Math.floor(Math.random()*emo.length)]; stage.appendChild(s);
+    const ang=Math.random()*Math.PI*2, sp=140+Math.random()*300;
+    const vx=Math.cos(ang)*sp, vy=Math.sin(ang)*sp-160, spin=(Math.random()*2-1)*540;
+    const t0=performance.now();
+    (function step(now){
+      const dt=(now-t0)/1000, px=vx*dt, py=vy*dt+360*dt*dt;
+      s.style.transform=`translate(${cx+px}px,${cy+py}px) rotate(${spin*dt}deg)`;
+      s.style.opacity=String(Math.max(0,1-dt/1.4));
+      if(dt<1.4) requestAnimationFrame(step); else s.remove();
+    })(t0);
+  }
+}
+(function bgFruit(){
+  const c=document.getElementById('bgfruit'); if(!c) return; const emo=['🍎','🍊','🍌','🍇','🍒'];
+  for(let i=0;i<14;i++){ const s=document.createElement('span'); s.textContent=emo[i%5];
+    s.style.left=(Math.random()*100)+'%'; s.style.fontSize=(26+Math.random()*46)+'px';
+    s.style.animationDuration=(20+Math.random()*22)+'s'; s.style.animationDelay=(-Math.random()*40)+'s'; c.appendChild(s); }
+})();
+
+function bagHTML(b){
+  if(bagEmpty(b)) return '<span class="knot"></span><span class="emptytag">empty</span>';
+  let h='<span class="knot"></span>';
+  for(const k of ORDER){
+    if(b[k]<=0) continue;
+    if(b[k]<=4){ for(let i=0;i<b[k];i++) h+=`<span class="e">${ITEMS[k]}</span>`; }
+    else { h+=`<span class="e">${ITEMS[k]}</span><span class="cnt">×${b[k]}</span>`; }
+  }
+  return h;
+}
+function makeBagEl(b,{spawner=false}={}){
+  const el=document.createElement('div');
+  el.className='bag '+(bagEmpty(b)?'empty set':(isSet(b)?'set':'multi'));
+  el.innerHTML=bagHTML(b); el._bag=b; el._spawner=spawner;
+  return el;
+}
+
+// ---------- state ----------
+let level, machines=[], connections=[], goalBag, goalPort, curr=0;
+const letter = key => key==='inA' ? 'A' : 'B';
+
+function levelNo(){ return curr+1; }
+
+// ---------- toolbox ----------
+function renderToolbox(){
+  toolbox.querySelectorAll('.chip').forEach(c=>c.remove());
+  TOOLBOX_ORDER.forEach(type=>{
+    const s=OPS[type]; const locked = levelNo() < s.unlock;
+    const chip=document.createElement('div');
+    chip.className='chip'+(locked?' locked':'');
+    chip.innerHTML=`<div class="cop">${s.op}</div><div class="cname">${s.name}</div>`+
+      (locked?`<div class="lock">🔒<small>Lv ${s.unlock}</small></div>`:'');
+    toolbox.appendChild(chip);
+    if(!locked) attachChipDrag(chip, type);
+  });
+}
+
+// ---------- build a machine ----------
+function createMachine(type){
+  const s=OPS[type];
+  const m=document.createElement('div'); m.className='machine';
+  let rowInner;
+  if(type==='equal'){
+    rowInner = `<div class="slot" data-kind="inA"><span class="tag">A</span></div>
+       <div class="glyph">=?</div>
+       <div class="slot" data-kind="inB"><span class="tag">B</span></div>
+       <div class="glyph">→</div>
+       <div class="face">?</div>`;
+  } else {
+    const inputs = s.arity===2
+      ? `<div class="slot" data-kind="inA"><span class="tag">A</span></div>
+         <div class="glyph">${s.op}</div>
+         <div class="slot" data-kind="inB"><span class="tag">B</span></div>`
+      : `<div class="slot" data-kind="inA"><span class="tag">IN</span></div>
+         <div class="glyph">${s.op}</div>`;
+    rowInner = `${inputs}
+      <div class="glyph">=</div>
+      <div class="slot out" data-kind="out"><span class="tag">OUT</span></div>`;
+  }
+  m.innerHTML=`
+    <div class="name"><span class="op">${s.op}</span> ${s.name}
+      <span class="ctrl"><button class="iconbtn q">?</button><button class="iconbtn x">✕</button></span></div>
+    <div class="tagline">${s.tagline}</div>
+    <div class="row">${rowInner}</div>
+    <div class="pop"><span class="close">✕</span>
+      <h4>${s.op} &nbsp;${s.name}</h4>
+      <p>${s.fruit}</p>
+      <div class="secret">✦ <b>psst…</b> ${s.secret}</div>
+    </div>`;
+  machinesEl.appendChild(m);
+  const o={ type, spec:s, el:m, arity:s.arity,
+    inA:null, inB:null, wireA:null, wireB:null, prevA:null, prevB:null,
+    out:null, outBag:null, outWires:[],
+    slotA:m.querySelector('[data-kind=inA]'),
+    slotB:m.querySelector('[data-kind=inB]'),
+    slotOut:m.querySelector('[data-kind=out]') };
+  machines.push(o);
+
+  // ports
+  o.portA = addPort(o.slotA,'inp'); o.portA._target={m:o,kind:'inA'};
+  if(s.arity===2){ o.portB=addPort(o.slotB,'inp'); o.portB._target={m:o,kind:'inB'}; }
+  if(o.slotOut){
+    o.portOut = addPort(o.slotOut,'outp');
+    o.portOut.addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); startWire(o,e); });
+  }
+  o.face = m.querySelector('.face');
+
+  // ? popover
+  const pop=m.querySelector('.pop');
+  m.querySelector('.q').onclick=ev=>{ ev.stopPropagation(); closeAllPops(); pop.classList.toggle('show'); syncPopped(); };
+  m.querySelector('.close').onclick=()=>{ pop.classList.remove('show'); syncPopped(); };
+  m.querySelector('.x').onclick=ev=>{ ev.stopPropagation(); removeMachine(o); };
+  attachMachineMove(o);
+  return o;
+}
+function addPort(slot, cls){ const p=document.createElement('div'); p.className='port '+cls; slot.appendChild(p); return p; }
+
+function removeMachine(m){
+  if(!bulkEval) Sound.play('remove');
+  [...connections].forEach(c=>{ if(c.srcM===m || (c.dst.m===m)) removeConnection(c); });
+  [m.inA,m.inB,m.out,m.prevA,m.prevB].forEach(t=>t&&t.remove());
+  m.el.remove();
+  machines.splice(machines.indexOf(m),1);
+  redrawWires();
+}
+
+function placeMachineAt(m, cx, cy){
+  const r=stage.getBoundingClientRect();
+  let x=cx-r.left-m.el.offsetWidth/2, y=cy-r.top-22;
+  x=Math.max(8, Math.min(x, stage.clientWidth-m.el.offsetWidth-8));
+  y=Math.max(64, Math.min(y, stage.clientHeight-m.el.offsetHeight-8));
+  m.el.style.left=x+'px'; m.el.style.top=y+'px';
+}
+
+// ---------- evaluation ----------
+function effInput(m, key){           // bag feeding an input, or null
+  const w = m['wire'+letter(key)];
+  if(w) return w.srcM.outBag;
+  const tok = m[key];
+  return tok ? tok._bag : null;
+}
+function recompute(m){
+  // refresh live previews for wired inputs
+  if(m.wireA) updatePreview(m,'inA');
+  if(m.arity===2 && m.wireB) updatePreview(m,'inB');
+  let a=effInput(m,'inA'), b=m.arity===2?effInput(m,'inB'):null;
+  if(m.type==='copy' && !a) a = m.testVal || null;   // empty Copy = free variable; Shake fills testVal
+  if(m.type==='equal'){                              // a checker, not a producer
+    let s='', txt='?';
+    if(a&&b){ if(bagEq(a,b)){ s='pass'; txt='✓'; } else { s='fail'; txt='✗'; } }
+    if(m.face){ m.face.className='face '+s; m.face.textContent=txt; }
+    m.outBag=null; return;
+  }
+  const ready = m.arity===2 ? (a&&b) : !!a;
+  m.outBag = ready ? (m.arity===2 ? m.spec.fn(a,b) : m.spec.fn(a)) : null;
+  // output token
+  if(m.out){ m.out.remove(); m.out=null; }
+  if(m.outBag){ const out=makeBagEl(m.outBag,{spawner:true}); tokenLayer.appendChild(out); placeAt(out,m.slotOut); m.out=out; attachDrag(out); if(!bulkEval) out.classList.add('pop'); }
+  // propagate downstream
+  for(const w of m.outWires){
+    if(w.dst.kind==='goal') updateGoalWire(w); else recompute(w.dst.m);
+  }
+}
+// pure evaluation (no DOM) used during Shake trials
+function evalIn(m, kind){
+  const w=m['wire'+letter(kind)];
+  if(w) return outOf(w.srcM);
+  const tok=m[kind]; return tok?tok._bag:null;
+}
+function outOf(m){
+  if(m.type==='copy') return evalIn(m,'inA') || m.testVal || null;
+  const a=evalIn(m,'inA'), b=m.arity===2?evalIn(m,'inB'):null;
+  const ready=m.arity===2?(a&&b):!!a;
+  return ready?(m.arity===2?m.spec.fn(a,b):m.spec.fn(a)):null;
+}
+function updatePreview(m, key){
+  const L=letter(key), slot=m['slot'+L];
+  if(m['prev'+L]){ m['prev'+L].remove(); m['prev'+L]=null; }
+  const w=m['wire'+L]; if(!w) return;
+  const el=makeBagEl(bag(w.srcM.outBag||{}),{}); el.classList.add('preview');
+  slot.appendChild(el); m['prev'+L]=el;
+}
+function updateGoalWire(w){
+  goalPrev.innerHTML='';
+  const b=w.srcM.outBag;
+  if(b){ const el=makeBagEl(bag(b),{}); el.classList.add('gpreview'); goalPrev.appendChild(el);
+    if(goalBag && bagEq(b,goalBag)) win(); }
+}
+
+// ---------- token placement ----------
+function placeAt(el, slotEl){
+  const s=slotEl.getBoundingClientRect(), t=tokenLayer.getBoundingClientRect();
+  el.style.left=(s.left-t.left+(s.width-96)/2)+'px';
+  el.style.top =(s.top -t.top +(s.height-88)/2)+'px';
+}
+function clearSlotOf(el){
+  for(const m of machines){
+    if(m.inA===el){ m.inA=null; recompute(m); }
+    if(m.inB===el){ m.inB=null; recompute(m); }
+  }
+}
+function inputSlots(){
+  const a=[];
+  for(const m of machines){ a.push({el:m.slotA,kind:'inA',m}); if(m.arity===2) a.push({el:m.slotB,kind:'inB',m}); }
+  return a;
+}
+function refreshTokens(m){ if(m.inA)placeAt(m.inA,m.slotA); if(m.inB)placeAt(m.inB,m.slotB); if(m.out)placeAt(m.out,m.slotOut); }
+
+// ---------- basket drag ----------
+let drag=null;
+function attachDrag(el){
+  el.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    Sound.play('pickup');
+    let moving=el;
+    if(el._spawner){
+      moving=makeBagEl(bag(el._bag)); tokenLayer.appendChild(moving); attachDrag(moving);
+      const r=el.getBoundingClientRect(), t=tokenLayer.getBoundingClientRect();
+      moving.style.left=(r.left-t.left)+'px'; moving.style.top=(r.top-t.top)+'px';
+    } else clearSlotOf(moving);
+    const t=tokenLayer.getBoundingClientRect(), mr=moving.getBoundingClientRect();
+    drag={ el:moving, dx:e.clientX-mr.left, dy:e.clientY-mr.top, layer:t };
+    moving.classList.add('dragging'); moving.setPointerCapture?.(e.pointerId);
+  });
+}
+window.addEventListener('pointermove', e=>{
+  if(!drag) return;
+  drag.el.style.left=(e.clientX-drag.layer.left-drag.dx)+'px';
+  drag.el.style.top =(e.clientY-drag.layer.top -drag.dy)+'px';
+  highlightSlots(e);
+});
+function highlightSlots(e){
+  document.querySelectorAll('.slot.in,#goalzone.in').forEach(x=>x.classList.remove('in'));
+  const tgt=hitTest(e);
+  if(tgt==='goal') goalzone.classList.add('in');
+  else if(tgt && tgt.kind!=='out') tgt.el.classList.add('in');
+}
+function hitTest(e){
+  if(inside(e,goalzone.getBoundingClientRect())) return 'goal';
+  for(const s of inputSlots()) if(inside(e,s.el.getBoundingClientRect())) return s;
+  return null;
+}
+const inside=(e,r)=> e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+
+window.addEventListener('pointerup', e=>{
+  if(!drag) return;
+  const el=drag.el; el.classList.remove('dragging');
+  const tgt=hitTest(e);
+  document.querySelectorAll('.slot.in,#goalzone.in').forEach(x=>x.classList.remove('in'));
+  if(tgt==='goal'){
+    if(goalBag && bagEq(el._bag,goalBag)){ win(); el.remove(); } else rejectToast();
+  } else if(tgt && tgt.kind!=='out'){
+    const m=tgt.m, key=tgt.kind, Lk=letter(key);
+    if(m['wire'+Lk]) removeConnection(m['wire'+Lk]);   // basket replaces a wire
+    if(m[key]) m[key].remove();
+    m[key]=el; placeAt(el,tgt.el); recompute(m); Sound.play('drop');
+  }
+  drag=null;
+});
+
+// ---------- chip drag (toolbox -> factory) ----------
+let chipDrag=null;
+function attachChipDrag(chip, type){
+  chip.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    const ghost=chip.cloneNode(true); ghost.classList.add('dragging');
+    ghost.style.position='fixed'; ghost.style.pointerEvents='none';
+    const r=chip.getBoundingClientRect();
+    ghost.style.width=r.width+'px'; ghost.style.left=r.left+'px'; ghost.style.top=r.top+'px';
+    document.body.appendChild(ghost);
+    chipDrag={ type, ghost, dx:e.clientX-r.left, dy:e.clientY-r.top };
+  });
+}
+window.addEventListener('pointermove', e=>{
+  if(!chipDrag) return;
+  chipDrag.ghost.style.left=(e.clientX-chipDrag.dx)+'px';
+  chipDrag.ghost.style.top =(e.clientY-chipDrag.dy)+'px';
+});
+window.addEventListener('pointerup', e=>{
+  if(!chipDrag) return;
+  const {type,ghost}=chipDrag; ghost.remove(); chipDrag=null;
+  const r=stage.getBoundingClientRect();
+  const overStage = inside(e,r) && (e.clientY>r.top+58) && (e.clientY<$('#palette').getBoundingClientRect().top);
+  if(overStage){ const m=createMachine(type); placeMachineAt(m,e.clientX,e.clientY); Sound.play('place'); }
+});
+
+// ---------- wiring ----------
+let wireDrag=null;
+function portCenter(el){ const r=el.getBoundingClientRect(), s=stage.getBoundingClientRect();
+  return [r.left+r.width/2-s.left, r.top+r.height/2-s.top]; }
+function pathD(x1,y1,x2,y2){ const dx=Math.max(40,Math.abs(x2-x1)*0.5);
+  return `M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`; }
+
+function startWire(srcM, e){
+  closeAllPops(); syncPopped();
+  const path=svgEl('path'); path.setAttribute('class','wirepath');
+  const g=svgEl('g'); g.setAttribute('class','wire temp'); g.appendChild(path); wiresSvg.appendChild(g);
+  wireDrag={ srcM, g, path };
+}
+function inPortTargets(){
+  const a=[];
+  for(const m of machines){ a.push({port:m.portA, t:{m,kind:'inA'}}); if(m.arity===2) a.push({port:m.portB, t:{m,kind:'inB'}}); }
+  if(goalPort) a.push({port:goalPort, t:{kind:'goal'}});
+  return a;
+}
+window.addEventListener('pointermove', e=>{
+  if(!wireDrag) return;
+  const [x1,y1]=portCenter(wireDrag.srcM.portOut);
+  const s=stage.getBoundingClientRect();
+  wireDrag.path.setAttribute('d', pathD(x1,y1, e.clientX-s.left, e.clientY-s.top));
+  document.querySelectorAll('.port.hot').forEach(p=>p.classList.remove('hot'));
+  for(const it of inPortTargets()) if(inside(e,it.port.getBoundingClientRect())) it.port.classList.add('hot');
+});
+window.addEventListener('pointerup', e=>{
+  if(!wireDrag) return;
+  const {srcM,g}=wireDrag; wireDrag=null; g.remove();
+  document.querySelectorAll('.port.hot').forEach(p=>p.classList.remove('hot'));
+  let hit=null; for(const it of inPortTargets()) if(inside(e,it.port.getBoundingClientRect())){ hit=it.t; break; }
+  if(!hit) return;
+  if(hit.kind!=='goal'){
+    if(hit.m===srcM) return;                       // no self-loop
+    if(reaches(hit.m, srcM)){ toast('That would make a loop',false); return; }
+  }
+  makeConnection(srcM, hit);
+});
+function reaches(a,b){  // can a reach b following outWires?
+  const seen=new Set(), st=[a];
+  while(st.length){ const c=st.pop(); if(c===b) return true; if(seen.has(c))continue; seen.add(c);
+    for(const w of c.outWires) if(w.dst.kind!=='goal') st.push(w.dst.m); }
+  return false;
+}
+function makeConnection(srcM, dst){
+  if(dst.kind!=='goal'){
+    const m=dst.m, key=dst.kind, Lk=letter(key);
+    if(m['wire'+Lk]) removeConnection(m['wire'+Lk]);     // one source per input
+    if(m[key]){ m[key].remove(); m[key]=null; }          // eject loose basket
+  }
+  const conn={ srcM, dst, g:null, hit:null, path:null };
+  // svg
+  const g=svgEl('g'); g.setAttribute('class','wire');
+  const hit=svgEl('path'); hit.setAttribute('class','wirehit');
+  const path=svgEl('path'); path.setAttribute('class','wirepath');
+  g.appendChild(hit); g.appendChild(path); wiresSvg.appendChild(g);
+  hit.addEventListener('click', ()=>{ removeConnection(conn); Sound.play('disconnect'); });
+  Object.assign(conn,{g,hit,path});
+  connections.push(conn); srcM.outWires.push(conn);
+  if(dst.kind!=='goal'){ dst.m['wire'+letter(dst.kind)]=conn; recompute(dst.m); }
+  else updateGoalWire(conn);
+  Sound.play('connect');
+  redrawWires();
+}
+function removeConnection(conn){
+  conn.g?.remove();
+  connections=connections.filter(c=>c!==conn);
+  conn.srcM.outWires=conn.srcM.outWires.filter(c=>c!==conn);
+  if(conn.dst.kind==='goal'){ goalPrev.innerHTML=''; }
+  else { const m=conn.dst.m, Lk=letter(conn.dst.kind);
+    if(m['wire'+Lk]===conn) m['wire'+Lk]=null;
+    if(m['prev'+Lk]){ m['prev'+Lk].remove(); m['prev'+Lk]=null; }
+    recompute(m); }
+}
+function redrawWires(){
+  for(const c of connections){
+    const [x1,y1]=portCenter(c.srcM.portOut);
+    const dstPort = c.dst.kind==='goal' ? goalPort : c.dst.m['port'+letter(c.dst.kind)];
+    const [x2,y2]=portCenter(dstPort);
+    const d=pathD(x1,y1,x2,y2); c.path.setAttribute('d',d); c.hit.setAttribute('d',d);
+  }
+}
+
+// ---------- machine reposition ----------
+function attachMachineMove(m){
+  const handle=m.el.querySelector('.name');
+  handle.addEventListener('pointerdown', e=>{
+    if(e.target.closest('.iconbtn')) return;
+    e.preventDefault();
+    const r=stage.getBoundingClientRect();
+    const ox=e.clientX-(parseFloat(m.el.style.left)||0)-r.left;
+    const oy=e.clientY-(parseFloat(m.el.style.top)||0)-r.top;
+    handle.classList.add('grabbing');
+    const move=ev=>{
+      let x=ev.clientX-r.left-ox, y=ev.clientY-r.top-oy;
+      x=Math.max(8,Math.min(x,stage.clientWidth-m.el.offsetWidth-8));
+      y=Math.max(64,Math.min(y,stage.clientHeight-m.el.offsetHeight-8));
+      m.el.style.left=x+'px'; m.el.style.top=y+'px'; refreshTokens(m); redrawWires();
+    };
+    const up=()=>{ handle.classList.remove('grabbing');
+      window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); };
+    window.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
+  });
+}
+
+// ---------- popovers ----------
+function syncPopped(){ document.querySelectorAll('.machine').forEach(card=>
+  card.classList.toggle('popped', card.querySelector('.pop').classList.contains('show'))); }
+function closeAllPops(){ document.querySelectorAll('.pop.show').forEach(p=>p.classList.remove('show')); }
+document.addEventListener('pointerdown', e=>{
+  if(!e.target.closest('.pop') && !e.target.closest('.q')){ closeAllPops(); syncPopped(); }
+}, true);
+
+// ---------- feedback ----------
+let toastTimer;
+function toast(msg, ok=true){
+  const t=$('#toast'); t.textContent=msg;
+  t.style.background= ok?'var(--accent)':'#ff9a9a';
+  t.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),1600);
+}
+const rejectToast=()=>{ Sound.play('error'); toast('Not quite the basket they wanted', false); };
+let solved=false;
+function win(){
+  if(solved) return; solved=true;
+  burst(); if(!level.law) Sound.play('win');
+  toast('✔ Delivered! Nice.');
+  $('#nextBtn').disabled=(curr>=L.length-1);
+  if(curr>=L.length-1) setTimeout(()=>toast('🎉 You cleared every level!'),1700);
+}
+
+// ---------- shake: property-test a ∀ law ----------
+function randomBag(){ const b=bag({}); for(const t of ['apple','orange','banana']) b[t]=Math.floor(Math.random()*4); return b; }
+function recomputeAll(){ for(let i=0;i<machines.length+1;i++) machines.forEach(recompute); }
+const bothWired = m => (m.inA||m.wireA) && (m.inB||m.wireB);
+function shake(){
+  const eqs = machines.filter(m=>m.type==='equal' && bothWired(m));
+  if(!eqs.length){ toast('Wire both sides of an Equal? machine first', false); return; }
+  Sound.play('shake');
+  const vars = machines.filter(m=>m.type==='copy' && !m.inA && !m.wireA);
+  let counter=null;
+  for(let trial=0; trial<40 && !counter; trial++){
+    const assign = vars.map(v=>[v, randomBag()]);
+    assign.forEach(([v,bg])=>v.testVal=bg);
+    for(const eq of eqs){
+      const a=evalIn(eq,'inA'), b=evalIn(eq,'inB');
+      if(a&&b&&!bagEq(a,b)){ counter=assign; break; }
+    }
+  }
+  if(counter){
+    counter.forEach(([v,bg])=>v.testVal=bg); bulkEval=true; recomputeAll(); bulkEval=false;
+    toast('Found a counterexample — not a law', false);
+    Sound.play(level.expect==='red' ? 'win' : 'lawfail');
+    if(level.law && level.expect==='red') win();
+  } else {
+    bulkEval=true; recomputeAll(); bulkEval=false;  // leaves the last (passing) assignment on show
+    toast('Held for all 40 baskets ✓ — it’s a law!');
+    Sound.play('lawpass');
+    if(level.law && level.expect==='green') win();
+  }
+}
+
+// ---------- level lifecycle ----------
+function buildLevel(idx){
+  bulkEval=true;
+  level=L[idx]; curr=idx; solved=false;
+  $('#levelPill').textContent=`Level ${idx+1} / ${L.length} — ${level.title}`;
+  $('#help').innerHTML=level.help;
+  $('#nextBtn').disabled=true;
+  [...machines].forEach(removeMachine);
+  connections=[]; wiresSvg.innerHTML=''; tokenLayer.innerHTML=''; goalPrev.innerHTML='';
+  if(goalPort){ goalPort.remove(); goalPort=null; }
+  if(level.goal){
+    goalBag=bag(level.goal); goalzone.style.display='';
+    $('#goalBag').innerHTML=''; $('#goalBag').appendChild(makeBagEl(goalBag));
+    goalPort=addPort(goalzone,'inp');
+  } else {
+    goalBag=null; goalzone.style.display='none'; $('#goalBag').innerHTML='';
+  }
+  $('#shakeBtn').style.display = level.law ? '' : 'none';
+  renderToolbox();
+  const pal=$('#paletteItems'); pal.innerHTML='';
+  level.supply.forEach(sp=>{ const el=makeBagEl(bag(sp),{spawner:true}); pal.appendChild(el); attachDrag(el); });
+  bulkEval=false;
+}
+
+$('#resetBtn').onclick=()=>{ Sound.play('click'); buildLevel(curr); };
+$('#nextBtn').onclick=()=>{ if(curr<L.length-1){ Sound.play('click'); buildLevel(curr+1); } };
+$('#shakeBtn').onclick=shake;
+$('#muteBtn').onclick=()=>{ Sound.unlock(); const m=Sound.toggleMute(); $('#muteBtn').textContent=m?'🔇':'🔊'; };
+$('#musicBtn').onclick=()=>{ Sound.unlock(); const on=Sound.toggleMusic(); $('#musicBtn').style.opacity=on?'1':'.45'; };
+window.addEventListener('pointerdown', ()=>Sound.unlock(), {once:true});
+window.addEventListener('resize', redrawWires);
+buildLevel(0);
+</script>
+</body>
+</html>
