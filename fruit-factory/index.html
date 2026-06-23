@@ -26,6 +26,10 @@
   header h1 .sub{color:var(--muted); font-weight:400; font-size:13px; margin-left:8px}
   .grow{flex:1}
   .pill{background:var(--panel2); border:1px solid var(--line); border-radius:999px; padding:6px 12px; color:var(--muted)}
+  header select{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:10px; padding:8px 10px; cursor:pointer; font-size:14px;
+  }
   button{
     background:var(--panel2); color:var(--ink); border:1px solid var(--line);
     border-radius:10px; padding:8px 14px; cursor:pointer; font-size:14px;
@@ -197,6 +201,7 @@
     <button id="muteBtn" title="Sound on/off">🔊</button>
     <button id="musicBtn" title="Music on/off">🎵</button>
     <button id="shakeBtn" style="display:none">🎲 Shake</button>
+    <select id="levelSelect" title="Jump to level"></select>
     <button id="resetBtn">Reset</button>
     <button id="nextBtn" disabled>Next ▸</button>
   </header>
@@ -949,6 +954,7 @@ function buildLevel(idx){
   bulkEval=true;
   level=L[idx]; curr=idx; solved=false;
   $('#levelPill').textContent=`Level ${idx+1} / ${L.length} — ${level.title}`;
+  $('#levelSelect').value=idx;
   $('#help').innerHTML=level.help;
   $('#nextBtn').disabled=true;
   [...machines].forEach(removeMachine);
@@ -971,6 +977,8 @@ function buildLevel(idx){
 $('#resetBtn').onclick=()=>{ Sound.play('click'); buildLevel(curr); };
 $('#nextBtn').onclick=()=>{ if(curr<L.length-1){ Sound.play('click'); buildLevel(curr+1); } };
 $('#shakeBtn').onclick=shake;
+$('#levelSelect').innerHTML=L.map((lv,i)=>`<option value="${i}">Level ${i+1} — ${lv.title}</option>`).join('');
+$('#levelSelect').onchange=e=>{ Sound.unlock(); Sound.play('click'); buildLevel(+e.target.value); };
 $('#muteBtn').onclick=()=>{ Sound.unlock(); const m=Sound.toggleMute(); $('#muteBtn').textContent=m?'🔇':'🔊'; };
 $('#musicBtn').onclick=()=>{ Sound.unlock(); const on=Sound.toggleMusic(); $('#musicBtn').style.opacity=on?'1':'.45'; };
 window.addEventListener('pointerdown', ()=>Sound.unlock(), {once:true});
